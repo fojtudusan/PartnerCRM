@@ -1,0 +1,175 @@
+﻿@page
+@model PartnerCRM.Pages.Activities.IndexModel
+
+@{
+    ViewData["Title"] = "Aktivity";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>Aktivity</h2>
+        <p class="text-muted mb-0">
+            Historie komunikace s firmami a kontaktními osobami
+        </p>
+    </div>
+
+    <a asp-page="./Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i>
+        Nová aktivita
+    </a>
+</div>
+
+        <form method="get" class="card mb-3">
+            <div class="card-body">
+                <div class="row align-items-end">
+                   <div class="col-md-5">
+    <label asp-for="CompanyId" class="form-label">
+        Filtrovat podle firmy
+    </label>
+
+    <select asp-for="CompanyId"
+            asp-items="Model.CompaniesList"
+            class="form-select">
+        <option value="">Všechny firmy</option>
+    </select>
+</div>
+
+<div class="col-md-4">
+    <label asp-for="ActivityType" class="form-label">
+        Typ aktivity
+    </label>
+
+    <select asp-for="ActivityType" class="form-select">
+        <option value="">Všechny typy</option>
+        <option value="Telefonát">Telefonát</option>
+        <option value="E-mail">E-mail</option>
+        <option value="Schůzka">Osobní schůzka</option>
+        <option value="Online jednání">Online jednání</option>
+        <option value="Poznámka">Poznámka</option>
+    </select>
+</div>
+<div class="col-md-3">
+    <label asp-for="DateFrom" class="form-label">
+        Od data
+    </label>
+
+    <input asp-for="DateFrom"
+           type="date"
+           class="form-control" />
+</div>
+
+<div class="col-md-3">
+    <label asp-for="DateTo" class="form-label">
+        Do data
+    </label>
+
+    <input asp-for="DateTo"
+           type="date"
+           class="form-control" />
+</div>
+
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-funnel"></i> Filtrovat
+                        </button>
+
+                        <a asp-page="./Index"
+                           class="btn btn-outline-secondary">
+                            Zrušit filtr
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        @if (Model.Activities.Any())
+        {
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Typ</th>
+                        <th>Předmět</th>
+                        <th>Firma</th>
+                        <th>Kontaktní osoba</th>
+                        <th>Výsledek</th>
+                        <th>Akce</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var activity in Model.Activities)
+                    {
+                        <tr>
+                            <td>
+                                @activity.ActivityDate.ToString("dd.MM.yyyy HH:mm")
+                            </td>
+
+                            <td>
+                                @{
+                                    var badgeClass = activity.Type switch
+                                    {
+                                        "Telefonát" => "bg-primary",
+                                        "E-mail" => "bg-info text-dark",
+                                        "Schůzka" => "bg-success",
+                                        "Online jednání" => "bg-info text-dark",
+                                        "Poznámka" => "bg-warning text-dark",
+                                        _ => "bg-light text-dark"
+                                    };
+                                }
+
+                                <span class="badge @badgeClass">
+                                    @activity.Type
+                                </span>
+                            </td>
+
+                            <td>
+                                <strong>@activity.Subject</strong>
+                            </td>
+
+                            <td>@activity.Company.Name</td>
+
+                            <td>
+                                @if (activity.Contact != null)
+                                {
+                                    @activity.Contact.FirstName
+                                    @: 
+                                    @activity.Contact.LastName
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+
+                            <td>@activity.Result</td>
+
+                            <td class="text-nowrap">
+                                <a asp-page="./Edit"
+                                   asp-route-id="@activity.Id"
+                                   class="btn btn-sm btn-outline-primary"
+                                   title="Upravit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+
+                                <a asp-page="./Delete"
+                                   asp-route-id="@activity.Id"
+                                   class="btn btn-sm btn-outline-danger"
+                                   title="Smazat">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="p-4 text-muted">
+                Zatím nejsou evidovány žádné aktivity.
+            </div>
+        }
+
+    </div>
+</div>

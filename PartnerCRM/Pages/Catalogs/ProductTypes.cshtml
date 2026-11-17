@@ -1,0 +1,268 @@
+﻿@page
+@model PartnerCRM.Pages.Catalogs.ProductTypesModel
+
+@{
+    ViewData["Title"] = "Typy zboží";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Typy zboží</h2>
+        <p class="text-muted mb-0">
+            Správa zkratek a typů zboží.
+        </p>
+    </div>
+
+    <a asp-page="./Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+        Zpět na číselníky
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+<!-- PŘIDÁNÍ POLOŽKY -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0">
+            <i class="bi bi-plus-circle me-2"></i>
+            Přidat nový typ zboží
+        </h5>
+    </div>
+
+    <div class="card-body p-4">
+        <form method="post" asp-page-handler="Add">
+            <div class="row align-items-end">
+
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">Zkratka *</label>
+                    <input asp-for="NewCode"
+                           class="form-control"
+                           maxlength="10"
+                           required />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Název *</label>
+                    <input asp-for="NewName"
+                           class="form-control"
+                           maxlength="150"
+                           required />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Popis</label>
+                    <input asp-for="NewDescription"
+                           class="form-control"
+                           maxlength="500" />
+                </div>
+
+                <div class="col-md-2 mb-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-plus-lg"></i>
+                        Přidat
+                    </button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SEZNAM POLOŽEK -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0">
+            Přehled typů zboží
+            <span class="badge bg-secondary ms-2">
+                @Model.ProductTypes.Count
+            </span>
+        </h5>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:100px;">Zkratka</th>
+                        <th>Název</th>
+                        <th>Popis</th>
+                        <th style="width:110px;">Stav</th>
+                        <th style="width:190px;">Akce</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var item in Model.ProductTypes)
+                    {
+                        <tr class="@(item.IsActive ? "" : "table-secondary")">
+
+                            <td>
+                                <strong>@item.Code</strong>
+                            </td>
+
+                            <td>@item.Name</td>
+
+                            <td>@item.Description</td>
+
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">Aktivní</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Neaktivní</span>
+                                }
+                            </td>
+
+                            <td>
+                                <div class="d-flex gap-2">
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editModal"
+                                            data-id="@item.Id"
+                                            data-code="@item.Code"
+                                            data-name="@item.Name"
+                                            data-description="@item.Description">
+                                        <i class="bi bi-pencil"></i>
+                                        Upravit
+                                    </button>
+
+                                    <form method="post"
+                                          asp-page-handler="ToggleActive"
+                                          asp-route-id="@item.Id">
+
+                                        <button type="submit"
+                                                class="btn btn-sm @(item.IsActive ? "btn-outline-danger" : "btn-outline-success")"
+                                                title="@(item.IsActive ? "Deaktivovat" : "Aktivovat")">
+
+                                            <i class="bi @(item.IsActive ? "bi-toggle-on" : "bi-toggle-off")"></i>
+                                        </button>
+
+                                    </form>
+
+                                </div>
+                            </td>
+
+                        </tr>
+                    }
+
+                    @if (!Model.ProductTypes.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                Zatím nejsou evidovány žádné typy zboží.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- OKNO PRO ÚPRAVU -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <form method="post" asp-page-handler="Edit">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Upravit typ zboží</h5>
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal">
+                    </button>
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden" name="id" id="editId" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Zkratka *</label>
+                        <input type="text"
+                               name="code"
+                               id="editCode"
+                               class="form-control"
+                               maxlength="10"
+                               required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Název *</label>
+                        <input type="text"
+                               name="name"
+                               id="editName"
+                               class="form-control"
+                               maxlength="150"
+                               required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Popis</label>
+                        <textarea name="description"
+                                  id="editDescription"
+                                  class="form-control"
+                                  maxlength="500"
+                                  rows="3"></textarea>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">
+                        Zrušit
+                    </button>
+
+                    <button type="submit" class="btn btn-primary">
+                        Uložit změny
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById("editModal")
+            .addEventListener("show.bs.modal", function (event) {
+
+                const button = event.relatedTarget;
+
+                document.getElementById("editId").value =
+                    button.getAttribute("data-id");
+
+                document.getElementById("editCode").value =
+                    button.getAttribute("data-code");
+
+                document.getElementById("editName").value =
+                    button.getAttribute("data-name");
+
+                document.getElementById("editDescription").value =
+                    button.getAttribute("data-description") || "";
+            });
+    </script>
+}

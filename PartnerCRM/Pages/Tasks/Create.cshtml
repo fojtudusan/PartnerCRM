@@ -1,0 +1,156 @@
+﻿@page
+@model PartnerCRM.Pages.Tasks.CreateModel
+
+@{
+    ViewData["Title"] = "Nový úkol";
+}
+
+<div class="mb-4">
+    <h2>Nový úkol</h2>
+    <p class="text-muted mb-0">
+        Zadání nového pracovního nebo obchodního úkolu
+    </p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+
+        <form method="post">
+
+            <div asp-validation-summary="All"
+                 class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="TaskItem.Title"
+                       class="form-label">Název úkolu *</label>
+
+                <input asp-for="TaskItem.Title"
+                       class="form-control"
+                       placeholder="Např. Obvolat firmy ve Zlínském kraji" />
+
+                <span asp-validation-for="TaskItem.Title"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TaskItem.CompanyId"
+                       class="form-label">Firma</label>
+
+                <select asp-for="TaskItem.CompanyId"
+                        asp-items="Model.CompaniesList"
+                        class="form-select"
+                        id="companySelect">
+                    <option value="">-- Bez přiřazené firmy --</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TaskItem.ContactId"
+                       class="form-label">Kontaktní osoba</label>
+
+                <select asp-for="TaskItem.ContactId"
+                        asp-items="Model.ContactsList"
+                        class="form-select"
+                        id="contactSelect">
+                    <option value="">-- Bez kontaktní osoby --</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TaskItem.DueDate"
+                       class="form-label">Termín splnění *</label>
+
+                <input asp-for="TaskItem.DueDate"
+                       type="datetime-local"
+                       class="form-control"
+                       asp-format="{0:yyyy-MM-ddTHH:mm}" />
+
+                <span asp-validation-for="TaskItem.DueDate"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="TaskItem.Priority"
+                           class="form-label">Priorita</label>
+
+                    <select asp-for="TaskItem.Priority"
+                            class="form-select">
+                        <option value="Nízká">Nízká</option>
+                        <option value="Normální">Normální</option>
+                        <option value="Vysoká">Vysoká</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="TaskItem.Status"
+                           class="form-label">Stav</label>
+
+                    <select asp-for="TaskItem.Status"
+                            class="form-select">
+                        <option value="Nový">Nový</option>
+                        <option value="Probíhá">Probíhá</option>
+                        <option value="Splněno">Splněno</option>
+                        <option value="Zrušeno">Zrušeno</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TaskItem.Description"
+                       class="form-label">Popis</label>
+
+                <textarea asp-for="TaskItem.Description"
+                          class="form-control"
+                          rows="4"></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i>
+                    Uložit úkol
+                </button>
+
+                <a asp-page="./Index"
+                   class="btn btn-outline-secondary">
+                    Zrušit
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const companySelect = document.getElementById("companySelect");
+        const contactSelect = document.getElementById("contactSelect");
+
+        companySelect.addEventListener("change", async function () {
+
+            const companyId = companySelect.value;
+
+            contactSelect.innerHTML =
+                '<option value="">-- Bez kontaktní osoby --</option>';
+
+            if (!companyId) {
+                return;
+            }
+
+            const response = await fetch(
+                `?handler=Contacts&companyId=${companyId}`
+            );
+
+            const contacts = await response.json();
+
+            contacts.forEach(contact => {
+                const option = document.createElement("option");
+                option.value = contact.id;
+                option.textContent = contact.name;
+                contactSelect.appendChild(option);
+            });
+        });
+    });
+</script>

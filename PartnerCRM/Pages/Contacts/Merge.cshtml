@@ -1,0 +1,103 @@
+﻿
+@page
+@model PartnerCRM.Pages.Contacts.MergeModel
+
+@{
+    ViewData["Title"] = "Sloučení kontaktů";
+}
+
+<div class="mb-4">
+    <h2>Sloučení duplicitních kontaktů</h2>
+    <p class="text-muted">
+        Vyberte kontakt, který zůstane zachován, a kontakt,
+        který bude archivován.
+    </p>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+
+        <form method="post">
+
+            <div asp-validation-summary="All"
+                 class="text-danger mb-3"></div>
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        Zachovat tento kontakt
+                    </label>
+
+                    <select asp-for="KeepContactId"
+                            asp-items="Model.ContactsList"
+                            class="form-select"
+                            required>
+                        <option value="">-- Vyberte kontakt --</option>
+                    </select>
+
+                    <div class="form-text">
+                        Tento kontakt zůstane aktivní.
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        Sloučit a archivovat tento kontakt
+                    </label>
+
+                    <select asp-for="MergeContactId"
+                            asp-items="Model.ContactsList"
+                            class="form-select"
+                            required>
+                        <option value="">-- Vyberte kontakt --</option>
+                    </select>
+
+                    <div class="form-text">
+                        Tento kontakt bude archivován a jeho
+                        aktivity a úkoly budou převedeny.
+                    </div>
+                </div>
+
+            </div>
+
+            <hr class="my-4" />
+
+            <div class="alert alert-warning">
+                <strong>Upozornění:</strong>
+                Sloučení je operace, která změní vazby aktivit
+                a úkolů. Původní kontakt zůstane v databázi
+                jako archivovaný záznam.
+            </div>
+
+            <div class="form-check mb-4">
+                <input asp-for="ConfirmMerge"
+                       class="form-check-input" />
+
+                <label asp-for="ConfirmMerge"
+                       class="form-check-label">
+                    Potvrzuji, že chci vybrané kontakty sloučit.
+                </label>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit"
+                        class="btn btn-warning">
+                    <i class="bi bi-arrow-left-right"></i>
+                    Sloučit kontakty
+                </button>
+
+                <a asp-page="./Index"
+                   class="btn btn-outline-secondary">
+                    Zpět
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

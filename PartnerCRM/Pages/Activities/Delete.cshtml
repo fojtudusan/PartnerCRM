@@ -1,0 +1,71 @@
+﻿@page "{id:int}"
+@model PartnerCRM.Pages.Activities.DeleteModel
+
+@{
+    ViewData["Title"] = "Smazat aktivitu";
+}
+
+<div class="mb-4">
+    <h2>Smazat aktivitu</h2>
+    <p class="text-muted">
+        Opravdu chcete odstranit následující záznam?
+    </p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+
+        <dl class="row">
+            <dt class="col-sm-3">Firma</dt>
+            <dd class="col-sm-9">@Model.Activity.Company.Name</dd>
+
+            <dt class="col-sm-3">Kontaktní osoba</dt>
+            <dd class="col-sm-9">
+                @if (Model.Activity.Contact != null)
+                {
+                    @Model.Activity.Contact.FirstName
+                    @: 
+                    @Model.Activity.Contact.LastName
+                }
+                else
+                {
+                    <span>—</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Typ</dt>
+            <dd class="col-sm-9">@Model.Activity.Type</dd>
+
+            <dt class="col-sm-3">Předmět</dt>
+            <dd class="col-sm-9">@Model.Activity.Subject</dd>
+
+            <dt class="col-sm-3">Datum</dt>
+            <dd class="col-sm-9">
+                @Model.Activity.ActivityDate.ToString("dd.MM.yyyy HH:mm")
+            </dd>
+
+            <dt class="col-sm-3">Popis</dt>
+            <dd class="col-sm-9">@Model.Activity.Description</dd>
+
+            <dt class="col-sm-3">Výsledek</dt>
+            <dd class="col-sm-9">@Model.Activity.Result</dd>
+        </dl>
+
+        <hr />
+
+        <form method="post">
+            <input type="hidden" name="id" value="@Model.Activity.Id" />
+
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i>
+                Ano, smazat aktivitu
+            </button>
+
+            <a asp-page="./Index"
+               class="btn btn-outline-secondary">
+                Zrušit
+            </a>
+        </form>
+
+    </div>
+</div>

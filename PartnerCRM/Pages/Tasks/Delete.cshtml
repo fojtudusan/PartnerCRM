@@ -1,0 +1,52 @@
+﻿@page "{id:int}"
+@model PartnerCRM.Pages.Tasks.DeleteModel
+
+@{
+    ViewData["Title"] = "Smazat úkol";
+}
+
+<div class="mb-4">
+    <h2>Smazat úkol</h2>
+    <p class="text-muted mb-0">
+        Opravdu chcete tento úkol odstranit?
+    </p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+
+        <h5>@Model.TaskItem.Title</h5>
+
+        <dl class="row mt-3">
+            <dt class="col-sm-3">Termín</dt>
+            <dd class="col-sm-9">
+                @Model.TaskItem.DueDate.ToString("dd.MM.yyyy HH:mm")
+            </dd>
+
+            <dt class="col-sm-3">Firma</dt>
+            <dd class="col-sm-9">
+                @(Model.TaskItem.Company?.Name ?? "—")
+            </dd>
+
+            <dt class="col-sm-3">Priorita</dt>
+            <dd class="col-sm-9">@Model.TaskItem.Priority</dd>
+
+            <dt class="col-sm-3">Stav</dt>
+            <dd class="col-sm-9">@Model.TaskItem.Status</dd>
+        </dl>
+
+        <form method="post">
+            <input type="hidden" name="id" value="@Model.TaskItem.Id" />
+
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Ano, smazat
+            </button>
+
+            <a asp-page="./Index"
+               class="btn btn-outline-secondary">
+                Zrušit
+            </a>
+        </form>
+
+    </div>
+</div>

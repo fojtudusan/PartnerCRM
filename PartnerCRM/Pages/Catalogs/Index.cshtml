@@ -1,0 +1,55 @@
+﻿@page
+@{
+    ViewData["Title"] = "Správa číselníků";
+}
+
+<div class="mb-4">
+    <h2 class="mb-1">Správa číselníků</h2>
+    <p class="text-muted mb-0">
+        Správa společných číselníků systému PartnerCRM.
+    </p>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <i class="bi bi-box-seam fs-1 text-primary"></i>
+
+                <h5 class="mt-3">Typy zboží</h5>
+
+                <p class="text-muted">
+                    Evidence typů zboží, jejich zkratek
+                    a popisů.
+                </p>
+
+                <a asp-page="./ProductTypes"
+                   class="btn btn-primary">
+                    Spravovat typy zboží
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <i class="bi bi-diagram-3 fs-1 text-primary"></i>
+
+                <h5 class="mt-3">Oblasti produkce</h5>
+
+                <p class="text-muted">
+                    Evidence oblastí produkce
+                    a jejich podkategorií.
+                </p>
+
+                <a asp-page="./ProductionAreas"
+                   class="btn btn-primary">
+                    Spravovat oblasti produkce
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>

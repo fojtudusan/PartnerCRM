@@ -1,0 +1,186 @@
+﻿@page "{id:int}"
+@model PartnerCRM.Pages.Activities.EditModel
+
+@{
+    ViewData["Title"] = "Upravit aktivitu";
+}
+
+<div class="mb-4">
+    <h2>Upravit aktivitu</h2>
+    <p class="text-muted mb-0">
+        Úprava záznamu komunikace
+    </p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+
+        <form method="post">
+
+            <input type="hidden" asp-for="Activity.Id" />
+
+            <div asp-validation-summary="All"
+                 class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Activity.CompanyId"
+                       class="form-label">Firma *</label>
+
+                <select asp-for="Activity.CompanyId"
+                        asp-items="Model.CompaniesList"
+                        class="form-select"
+                        id="companySelect">
+                    <option value="">-- Vyberte firmu --</option>
+                </select>
+
+                <span asp-validation-for="Activity.CompanyId"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Activity.ContactId"
+                       class="form-label">Kontaktní osoba</label>
+
+                <select asp-for="Activity.ContactId"
+                        asp-items="Model.ContactsList"
+                        class="form-select"
+                        id="contactSelect">
+                    <option value="">-- Bez kontaktní osoby --</option>
+                </select>
+
+                <span asp-validation-for="Activity.ContactId"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Activity.Type"
+                       class="form-label">Typ aktivity *</label>
+
+                <select asp-for="Activity.Type" class="form-select">
+                    <option value="">-- Vyberte typ --</option>
+                    <option value="Telefonát">Telefonát</option>
+                    <option value="E-mail">E-mail</option>
+                    <option value="Schůzka">Osobní schůzka</option>
+                    <option value="Online jednání">Online jednání</option>
+                    <option value="Poznámka">Poznámka</option>
+                </select>
+
+                <span asp-validation-for="Activity.Type"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Activity.Subject"
+                       class="form-label">Předmět *</label>
+
+                <input asp-for="Activity.Subject"
+                       class="form-control" />
+
+                <span asp-validation-for="Activity.Subject"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Activity.ActivityDate"
+                       class="form-label">Datum a čas *</label>
+
+                <input asp-for="Activity.ActivityDate"
+                       type="datetime-local"
+                       class="form-control"
+                       asp-format="{0:yyyy-MM-ddTHH:mm}" />
+
+                <span asp-validation-for="Activity.ActivityDate"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Activity.Description"
+                       class="form-label">Popis</label>
+
+                <textarea asp-for="Activity.Description"
+                          class="form-control"
+                          rows="4"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Activity.Result"
+                       class="form-label">Výsledek</label>
+
+                <textarea asp-for="Activity.Result"
+                          class="form-control"
+                          rows="3"></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i>
+                    Uložit změny
+                </button>
+
+                <a asp-page="./Index"
+                   class="btn btn-outline-secondary">
+                    Zrušit
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+    
+document.addEventListener("DOMContentLoaded", function () {
+
+    const companySelect = document.getElementById("companySelect");
+    const contactSelect = document.getElementById("contactSelect");
+
+    companySelect.addEventListener("change", async function () {
+
+        const companyId = companySelect.value;
+
+        contactSelect.innerHTML =
+            '<option value="">-- Bez kontaktní osoby --</option>';
+
+        contactSelect.disabled = true;
+
+        if (!companyId) {
+            contactSelect.innerHTML =
+                '<option value="">-- Nejprve vyberte firmu --</option>';
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `?handler=Contacts&companyId=${companyId}`
+            );
+
+            if (!response.ok) {
+                throw new Error("Nepodařilo se načíst kontakty.");
+            }
+
+            const contacts = await response.json();
+
+            contacts.forEach(contact => {
+                const option = document.createElement("option");
+                option.value = contact.id;
+                option.textContent = contact.name;
+                contactSelect.appendChild(option);
+            });
+
+            contactSelect.disabled = false;
+        }
+        catch (error) {
+            console.error(error);
+
+            contactSelect.innerHTML =
+                '<option value="">-- Chyba při načítání kontaktů --</option>';
+
+            alert("Nepodařilo se načíst kontakty pro vybranou firmu.");
+        }
+
+    });
+
+});
+
+</script>

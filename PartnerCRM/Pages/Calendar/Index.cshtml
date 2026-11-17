@@ -1,0 +1,179 @@
+﻿
+@page
+@model PartnerCRM.Pages.Calendar.IndexModel
+
+@{
+    ViewData["Title"] = "Kalendář";
+
+    var firstDay = Model.CurrentMonth;
+
+    var daysInMonth = DateTime.DaysInMonth(
+        firstDay.Year, firstDay.Month);
+
+    // Pondělí = 0, neděle = 6
+    var startOffset = ((int)firstDay.DayOfWeek + 6) % 7;
+
+    var totalCells = (int)Math.Ceiling(
+        (startOffset + daysInMonth) / 7.0) * 7;
+
+    var previousMonth = firstDay.AddMonths(-1);
+    var nextMonth = firstDay.AddMonths(1);
+
+    var monthName = firstDay.ToString(
+        "MMMM yyyy",
+        new System.Globalization.CultureInfo("cs-CZ"));
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>Kalendář</h2>
+        <p class="text-muted mb-0">
+            Přehled obchodních aktivit a úkolů
+        </p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a asp-page="./Index"
+           asp-route-year="@previousMonth.Year"
+           asp-route-month="@previousMonth.Month"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+
+        <a asp-page="./Index" class="btn btn-outline-primary">
+            Dnes
+        </a>
+
+        <a asp-page="./Index"
+           asp-route-year="@nextMonth.Year"
+           asp-route-month="@nextMonth.Month"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+</div>
+
+<h4 class="text-center text-capitalize mb-3">
+    @monthName
+</h4>
+
+<div class="card">
+    <div class="card-body p-2">
+
+        <div class="row g-1 mb-1">
+            @foreach (var dayName in new[]
+            {
+                "Pondělí", "Úterý", "Středa",
+                "Čtvrtek", "Pátek", "Sobota", "Neděle"
+            })
+            {
+                <div class="col text-center fw-bold small py-2">
+                    @dayName
+                </div>
+            }
+        </div>
+
+        <div class="row g-1">
+            @for (int i = 0; i < totalCells; i++)
+            {
+                var dayNumber = i - startOffset + 1;
+
+                var isCurrentMonth =
+                    dayNumber >= 1 && dayNumber <= daysInMonth;
+
+                <div class="col-12 col-md"
+                     style="flex: 0 0 14.285%; max-width: 14.285%;">
+
+                    <div class="border rounded p-2"
+                         style="min-height: 115px;">
+
+                        @if (isCurrentMonth)
+                        {
+                            var currentDate = new DateTime(
+                                firstDay.Year,
+                                firstDay.Month,
+                                dayNumber);
+
+                            var isToday =
+                                currentDate.Date == DateTime.Today;
+
+                            <div class="fw-bold mb-2 @(isToday ? "text-primary" : "")">
+                                <a asp-page="/Tasks/Create"
+                                   asp-route-dueDate="@currentDate.ToString("yyyy-MM-ddTHH:mm")"
+                                   class="text-decoration-none">
+                                    @dayNumber
+                                </a>
+
+                                <a asp-page="/Activities/Create"
+                                   asp-route-activityDate="@currentDate.ToString("yyyy-MM-ddTHH:mm")"
+                                   class="ms-1 text-decoration-none"
+                                   title="Nová obchodní aktivita">
+                                    <i class="bi bi-plus-circle"></i>
+                                </a>
+
+                                @if (isToday)
+                                {
+                                    <small>(dnes)</small>
+                                }
+                            </div>
+
+                            @foreach (var activity in Model.Activities
+                                .Where(a => a.ActivityDate.Date == currentDate.Date))
+                            {
+                                <a asp-page="/Activities/Edit"
+                                   asp-route-id="@activity.Id"
+                                   class="d-block small bg-primary text-white rounded p-1 mb-1 text-decoration-none">
+                                    <i class="bi bi-calendar-event"></i>
+                                    @activity.ActivityDate.ToString("HH:mm")
+                                    @activity.Type
+                                </a>
+                            }
+
+                            @foreach (var task in Model.Tasks
+                                .Where(t => t.DueDate.Date == currentDate.Date))
+                            {
+                                var taskClass = task.Status == "Splněno"
+                                    ? "bg-success"
+                                    : task.Status == "Zrušeno"
+                                        ? "bg-secondary"
+                                        : task.DueDate < DateTime.Now
+                                            ? "bg-danger"
+                                            : "bg-warning text-dark";
+
+                                <a asp-page="/Tasks/Edit"
+                                   asp-route-id="@task.Id"
+                                   class="d-block small @taskClass rounded p-1 mb-1 text-decoration-none">
+                                    <i class="bi bi-check2-square"></i>
+                                    @task.Title
+                                </a>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+<div class="mt-3 d-flex gap-3 flex-wrap">
+    <span>
+        <span class="badge bg-primary"> </span>
+        Obchodní aktivita
+    </span>
+
+    <span>
+        <span class="badge bg-warning"> </span>
+        Úkol
+    </span>
+
+    <span>
+        <span class="badge bg-success"> </span>
+        Splněný úkol
+    </span>
+
+    <span>
+        <span class="badge bg-danger"> </span>
+        Úkol po termínu
+    </span>
+</div>

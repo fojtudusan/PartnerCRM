@@ -1,0 +1,292 @@
+﻿
+@page
+@model PartnerCRM.Pages.Marketing.ResultsModel
+
+@{
+    ViewData["Title"] = "Evidence výsledků";
+}
+
+<div class="container-fluid">
+
+    <!-- Hlavička -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>
+                <i class="bi bi-bar-chart-line"></i>
+                Evidence výsledků
+            </h2>
+            <p class="text-muted mb-0">
+                Přehled výsledků marketingových kampaní a jejich příjemců.
+            </p>
+        </div>
+
+        <a asp-page="/Marketing/Index"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+            Zpět na marketing
+        </a>
+    </div>
+
+    <!-- Souhrnné statistiky -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Celkem příjemců</div>
+                    <div class="fs-2 fw-bold">
+                        @Model.TotalRecipients
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Odesláno</div>
+                    <div class="fs-2 fw-bold text-success">
+                        @Model.SentCount
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Připraveno</div>
+                    <div class="fs-2 fw-bold text-primary">
+                        @Model.ReadyCount
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Chyby</div>
+                    <div class="fs-2 fw-bold text-danger">
+                        @Model.ErrorCount
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Přehled kampaní -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <strong>Marketingové kampaně</strong>
+        </div>
+
+        <div class="card-body">
+
+            @if (Model.Campaigns.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+                            <tr>
+                                <th>Marketingová akce</th>
+                                <th>Šablona</th>
+                                <th>Stav kampaně</th>
+                                <th class="text-center">Příjemci</th>
+                                <th class="text-center">Odesláno</th>
+                                <th class="text-center">Chyby</th>
+                                <th>Vytvořeno</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var campaign in Model.Campaigns)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@campaign.Name</strong>
+                                        @if (!string.IsNullOrWhiteSpace(campaign.Description))
+                                        {
+                                            <div class="text-muted small">
+                                                @campaign.Description
+                                            </div>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @(campaign.EmailTemplate?.Name ?? "Nevybrána")
+                                    </td>
+
+                                    <td>
+                                        @if (campaign.Status == "Příprava")
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Příprava
+                                            </span>
+                                        }
+                                        else if (campaign.Status == "Připraveno k odeslání")
+                                        {
+                                            <span class="badge bg-primary">
+                                                Připraveno k odeslání
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info">
+                                                @campaign.Status
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="text-center">
+                                        @campaign.Recipients.Count
+                                    </td>
+
+                                    <td class="text-center text-success fw-bold">
+                                        @campaign.Recipients.Count(r => r.Status == "Odesláno")
+                                    </td>
+
+                                    <td class="text-center text-danger fw-bold">
+                                        @campaign.Recipients.Count(r => r.Status == "Chyba")
+                                    </td>
+
+                                    <td>
+                                        @campaign.CreatedAt.ToString("dd.MM.yyyy")
+                                    </td>
+
+                                    <td class="text-end">
+                                        <a asp-page="/Marketing/Details"
+                                           asp-route-id="@campaign.Id"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                            Detail
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted mb-0">
+                    Zatím nebyly vytvořeny žádné marketingové akce.
+                </p>
+            }
+
+        </div>
+    </div>
+
+    <!-- Detailní evidence příjemců -->
+    @foreach (var campaign in Model.Campaigns)
+    {
+        <div class="card mb-4">
+
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>@campaign.Name – příjemci</strong>
+
+                <span class="badge bg-primary">
+                    @campaign.Recipients.Count příjemců
+                </span>
+            </div>
+
+            <div class="card-body">
+
+                @if (campaign.Recipients.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+
+                            <thead>
+                                <tr>
+                                    <th>Firma</th>
+                                    <th>Kontakt</th>
+                                    <th>E-mail</th>
+                                    <th>Stav</th>
+                                    <th>Datum odeslání</th>
+                                    <th>Chybová zpráva</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var recipient in campaign.Recipients
+                                    .OrderBy(r => r.Company.Name)
+                                    .ThenBy(r => r.Contact.LastName))
+                                {
+                                    <tr>
+                                        <td>@recipient.Company.Name</td>
+
+                                        <td>
+                                            @recipient.Contact.FirstName
+                                            @recipient.Contact.LastName
+                                        </td>
+
+                                        <td>@recipient.EmailAddress</td>
+
+                                        <td>
+                                            @if (recipient.Status == "Odesláno")
+                                            {
+                                                <span class="badge bg-success">
+                                                    Odesláno
+                                                </span>
+                                            }
+                                            else if (recipient.Status == "Chyba")
+                                            {
+                                                <span class="badge bg-danger">
+                                                    Chyba
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">
+                                                    @recipient.Status
+                                                </span>
+                                            }
+                                        </td>
+
+                                        <td>
+                                            @(recipient.SentAt?.ToString("dd.MM.yyyy HH:mm") ?? "–")
+                                        </td>
+
+                                        <td>
+                                            @if (!string.IsNullOrWhiteSpace(recipient.ErrorMessage))
+                                            {
+                                                <span class="text-danger">
+                                                    @recipient.ErrorMessage
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">–</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">
+                        Kampaň zatím nemá žádné příjemce.
+                    </p>
+                }
+
+            </div>
+        </div>
+    }
+
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i>
+        Evidence zobrazuje skutečně uložené stavy příjemců.
+        Samotné odesílání e-mailů zatím není aktivní.
+    </div>
+
+</div>

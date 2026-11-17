@@ -1,0 +1,134 @@
+﻿
+@page "{id:int}"
+@model PartnerCRM.Pages.Contacts.DeleteModel
+
+@{
+    ViewData["Title"] = "Smazání kontaktu";
+}
+
+<div class="mb-4">
+    <h2 class="mb-1">Smazání kontaktu</h2>
+    <p class="text-muted mb-0">
+        Informace o kontaktní osobě a její historii.
+    </p>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+
+        <div asp-validation-summary="All"
+             class="alert alert-danger"></div>
+
+        <dl class="row mb-4">
+
+            <dt class="col-sm-3">Jméno</dt>
+            <dd class="col-sm-9">
+                @Model.Contact.FirstName @Model.Contact.LastName
+            </dd>
+
+            <dt class="col-sm-3">Firma</dt>
+            <dd class="col-sm-9">
+                @Model.Contact.Company.Name
+            </dd>
+
+            <dt class="col-sm-3">Pozice</dt>
+            <dd class="col-sm-9">
+                @Model.Contact.Position
+            </dd>
+
+            <dt class="col-sm-3">E-mail</dt>
+            <dd class="col-sm-9">
+                @Model.Contact.Email
+            </dd>
+
+            <dt class="col-sm-3">Telefon</dt>
+            <dd class="col-sm-9">
+                @Model.Contact.Phone
+            </dd>
+
+        </dl>
+
+        <hr />
+
+        <h5 class="mb-3">Historie kontaktu</h5>
+
+        <div class="row mb-4">
+
+            <div class="col-md-4 mb-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="text-muted small">Působení ve firmách</div>
+                    <div class="fs-4 fw-semibold">
+                        @Model.EmploymentCount
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="text-muted small">Aktivity</div>
+                    <div class="fs-4 fw-semibold">
+                        @Model.ActivityCount
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <div class="border rounded p-3 h-100">
+                    <div class="text-muted small">Úkoly</div>
+                    <div class="fs-4 fw-semibold">
+                        @Model.TaskCount
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        @if (Model.HasHistory)
+        {
+            <div class="alert alert-warning">
+                <strong>Kontakt nelze smazat.</strong>
+
+                Má evidovaná působení ve firmách, aktivity
+                nebo úkoly. Jeho smazáním bychom narušili
+                historii CRM.
+
+                <hr />
+
+                Doporučujeme kontakt ponechat v databázi
+                nebo jej sloučit s jiným kontaktem.
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle"></i>
+                Kontakt nemá evidovanou historii.
+                Opravdu jej chcete trvale odstranit?
+                Tuto operaci nelze vrátit zpět.
+            </div>
+        }
+
+        <form method="post">
+
+            <div class="d-flex justify-content-end gap-2">
+
+                <a asp-page="./Index"
+                   class="btn btn-outline-secondary">
+                    Zpět
+                </a>
+
+                @if (!Model.HasHistory)
+                {
+                    <button type="submit"
+                            class="btn btn-danger">
+                        <i class="bi bi-trash"></i>
+                        Ano, smazat kontakt
+                    </button>
+                }
+
+            </div>
+
+        </form>
+
+    </div>
+</div>

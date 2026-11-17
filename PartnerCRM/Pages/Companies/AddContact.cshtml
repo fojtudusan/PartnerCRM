@@ -1,0 +1,97 @@
+﻿
+@page "{id:int}"
+@model PartnerCRM.Pages.Companies.AddContactModel
+
+@{
+    ViewData["Title"] = "Přidat existující kontakt";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Přidat existující kontakt</h2>
+        <p class="text-muted mb-0">
+            Firma: <strong>@Model.Company.Name</strong>
+        </p>
+    </div>
+
+    <a asp-page="./Details"
+       asp-route-id="@Model.Company.Id"
+       class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+        Zpět na detail firmy
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+
+        <form method="post">
+
+            <div asp-validation-summary="All"
+                 class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="ContactId" class="form-label">
+                    Existující kontaktní osoba *
+                </label>
+
+                <select asp-for="ContactId"
+                        asp-items="Model.ContactsList"
+                        class="form-select">
+                    <option value="">-- Vyberte kontakt --</option>
+                </select>
+
+                <span asp-validation-for="ContactId"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Position" class="form-label">
+                    Pracovní pozice ve firmě
+                </label>
+
+                <input asp-for="Position"
+                       class="form-control"
+                       placeholder="Např. obchodní ředitel" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="DateFrom" class="form-label">
+                    Začátek působení *
+                </label>
+
+                <input asp-for="DateFrom"
+                       type="date"
+                       class="form-control" />
+
+                <span asp-validation-for="DateFrom"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                Přidáním kontaktu vznikne nové působení v této firmě.
+                Případná další působení kontaktu v jiných firmách zůstanou zachována.
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a asp-page="./Details"
+                   asp-route-id="@Model.Company.Id"
+                   class="btn btn-outline-secondary">
+                    Zrušit
+                </a>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i>
+                    Přidat kontakt k firmě
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

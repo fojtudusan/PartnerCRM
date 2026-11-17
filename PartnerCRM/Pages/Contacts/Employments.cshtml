@@ -1,0 +1,203 @@
+﻿
+@page "{id:int}"
+@model PartnerCRM.Pages.Contacts.EmploymentsModel
+
+@{
+    ViewData["Title"] = "Působení kontaktu";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Působení kontaktu</h2>
+        <p class="text-muted mb-0">
+            @Model.Contact.FirstName @Model.Contact.LastName
+        </p>
+    </div>
+
+    <a asp-page="./Edit"
+       asp-route-id="@Model.Contact.Id"
+       class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+        Zpět na kontakt
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["SuccessMessage"]
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+    </div>
+}
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+
+        <h5 class="mb-3">
+            <i class="bi bi-plus-circle"></i>
+            Přidat působení v další firmě
+        </h5>
+
+        <form method="post" asp-page-handler="Add">
+
+            <div asp-validation-summary="All"
+                 class="text-danger mb-3"></div>
+
+            <div class="row">
+
+                <div class="col-md-5 mb-3">
+                    <label asp-for="CompanyId"
+                           class="form-label">
+                        Firma *
+                    </label>
+
+                    <select asp-for="CompanyId"
+                            asp-items="Model.CompaniesList"
+                            class="form-select">
+                        <option value="">-- Vyberte firmu --</option>
+                    </select>
+
+                    <span asp-validation-for="CompanyId"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Position"
+                           class="form-label">
+                        Pracovní pozice
+                    </label>
+
+                    <input asp-for="Position"
+                           class="form-control"
+                           placeholder="Např. obchodní ředitel" />
+                </div>
+
+                <div class="col-md-3 mb-3">
+                    <label asp-for="DateFrom"
+                           class="form-label">
+                        Začátek působení *
+                    </label>
+
+                    <input asp-for="DateFrom"
+                           type="date"
+                           class="form-control" />
+
+                    <span asp-validation-for="DateFrom"
+                          class="text-danger"></span>
+                </div>
+
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button type="submit"
+                        class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i>
+                    Přidat působení
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+
+        <h5 class="mb-3">Historie působení</h5>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+
+                <thead>
+                    <tr>
+                        <th>Firma</th>
+                        <th>Pracovní pozice</th>
+                        <th>Od</th>
+                        <th>Do</th>
+                        <th>Stav</th>
+                        <th class="text-end">Akce</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model.Employments.Any())
+                    {
+                        @foreach (var employment in Model.Employments)
+                        {
+                            <tr>
+                                <td class="fw-semibold">
+                                    @employment.Company.Name
+                                </td>
+
+                                <td>
+                                    @employment.Position
+                                </td>
+
+                                <td>
+                                    @employment.DateFrom.ToString("dd.MM.yyyy")
+                                </td>
+
+                                <td>
+                                    @(employment.DateTo?.ToString("dd.MM.yyyy") ?? "–")
+                                </td>
+
+                                <td>
+                                    @if (employment.IsCurrent)
+                                    {
+                                        <span class="badge bg-success">
+                                            Aktivní
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            Ukončeno
+                                        </span>
+                                    }
+                                </td>
+
+                                <td class="text-end">
+                                    @if (employment.IsCurrent)
+                                    {
+                                        <form method="post"
+                                              asp-page-handler="End"
+                                              asp-route-id="@Model.Contact.Id"
+                                              asp-route-employmentId="@employment.Id"
+                                              onsubmit="return confirm('Opravdu chcete ukončit toto působení?');">
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-calendar-x"></i>
+                                                Ukončit
+                                            </button>
+
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6"
+                                class="text-center text-muted py-4">
+                                Zatím není evidováno žádné působení.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

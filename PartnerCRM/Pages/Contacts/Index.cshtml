@@ -1,0 +1,218 @@
+﻿
+@page
+@model PartnerCRM.Pages.Contacts.IndexModel
+
+@{
+    ViewData["Title"] = "Kontakty";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Kontakty</h2>
+        <p class="text-muted mb-0">
+            Evidence kontaktních osob ve firmách
+        </p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a asp-page="./Merge" class="btn btn-warning">
+            <i class="bi bi-arrow-left-right"></i>
+            Sloučit kontakty
+        </a>
+
+        @if (!Model.ShowArchived)
+        {
+            <a asp-page="./Create" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                Nový kontakt
+            </a>
+        }
+    </div>
+</div>
+
+<div class="mb-3">
+    @if (Model.ShowArchived)
+    {
+        <a asp-page="./Index"
+           class="btn btn-outline-primary">
+            <i class="bi bi-person-check"></i>
+            Aktivní kontakty
+        </a>
+
+        <span class="badge bg-secondary ms-2">
+            Archivované kontakty
+        </span>
+    }
+    else
+    {
+        <a asp-page="./Index"
+           asp-route-showArchived="true"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-archive"></i>
+            Archiv kontaktů
+        </a>
+
+        <span class="badge bg-success ms-2">
+            Aktivní kontakty
+        </span>
+    }
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["SuccessMessage"]
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+    </div>
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Jméno a příjmení</th>
+                        <th>Firma</th>
+                        <th>Pozice</th>
+                        <th>E-mail</th>
+                        <th>Telefon</th>
+                        <th>Hlavní kontakt</th>
+
+                        @if (Model.ShowArchived)
+                        {
+                            <th>Sloučeno do</th>
+                            <th>Datum sloučení</th>
+                        }
+
+                        <th class="text-end">Akce</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model.Contacts.Any())
+                    {
+                        @foreach (var contact in Model.Contacts)
+                        {
+                            <tr>
+                                <td class="fw-semibold">
+                                    @contact.FirstName @contact.LastName
+                                </td>
+
+                                <td>
+    @{
+        var currentCompanies = contact.Employments
+            .Where(e => e.IsCurrent && e.Company != null)
+            .Select(e => e.Company.Name)
+            .Distinct()
+            .OrderBy(name => name)
+            .ToList();
+    }
+
+    @if (currentCompanies.Any())
+    {
+        @string.Join(", ", currentCompanies)
+    }
+    else if (contact.Company != null)
+    {
+        <span class="text-muted">
+            @contact.Company.Name
+        </span>
+    }
+    else
+    {
+        <span class="text-muted">Neuvedeno</span>
+    }
+</td>
+
+                                <td>@contact.Position</td>
+
+                                <td>@contact.Email</td>
+
+                                <td>@contact.Phone</td>
+
+                                <td>
+                                    @if (contact.IsPrimary)
+                                    {
+                                        <span class="badge bg-success">Ano</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Ne</span>
+                                    }
+                                </td>
+
+                                @if (Model.ShowArchived)
+                                {
+                                    <td>
+                                        @if (contact.MergedIntoContact != null)
+                                        {
+                                            <strong>
+                                                @contact.MergedIntoContact.FirstName
+                                                @contact.MergedIntoContact.LastName
+                                            </strong>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Neuvedeno</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @contact.MergedAt?.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                    </td>
+                                }
+
+                                <td class="text-end">
+                                    @if (!Model.ShowArchived)
+                                    {
+                                        <a asp-page="./Edit"
+                                           asp-route-id="@contact.Id"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                            Upravit
+                                        </a>
+
+                                        <a asp-page="./Delete"
+                                           asp-route-id="@contact.Id"
+                                           class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                            Smazat
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">
+                                            Archivováno
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="@(Model.ShowArchived ? 9 : 7)"
+                                class="text-center text-muted py-4">
+                                @if (Model.ShowArchived)
+                                {
+                                    <span>Archiv zatím neobsahuje žádné kontakty.</span>
+                                }
+                                else
+                                {
+                                    <span>Zatím nejsou evidovány žádné kontakty.</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>

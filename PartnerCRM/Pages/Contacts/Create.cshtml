@@ -1,0 +1,393 @@
+﻿@page
+@model PartnerCRM.Pages.Contacts.CreateModel
+
+@{
+    ViewData["Title"] = "Nový kontakt";
+}
+
+<div class="mb-4">
+    <h2 class="mb-1">Nový kontakt</h2>
+    <p class="text-muted mb-0">
+    Zadejte osobní údaje kontaktu a jeho první působení ve firmě.
+    Další firmy můžete přidat následně v detailu kontaktu.
+    </p>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+
+        <form method="post">
+
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger mb-3">
+            </div>
+            
+@if (Model.EmailDuplicateWarning && Model.EmailMatch != null)
+{
+    <div class="alert alert-warning mb-3">
+        <strong>Pozor! Tento e-mail již evidujeme.</strong>
+
+        <p class="mb-2">
+            Existující kontakt:
+            <strong>
+                @Model.EmailMatch.FirstName
+                @Model.EmailMatch.LastName
+            </strong>
+        </p>
+
+        <p class="mb-2">
+            Firma: @Model.EmailMatch.CompanyName
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(Model.EmailMatch.Position))
+        {
+            <p class="mb-2">
+                Pozice: @Model.EmailMatch.Position
+            </p>
+        }
+
+        <a asp-page="./Edit"
+           asp-route-id="@Model.EmailMatch.Id"
+           class="btn btn-sm btn-outline-primary mb-3">
+            <i class="bi bi-person"></i>
+            Otevřít existující kontakt
+        </a>
+
+        <hr />
+
+        <div class="form-check">
+            <input asp-for="ConfirmEmailDuplicate"
+                   class="form-check-input" />
+
+            <label asp-for="ConfirmEmailDuplicate"
+                   class="form-check-label">
+                Vím o existujícím kontaktu a přesto chci
+                založit nový kontakt.
+            </label>
+        </div>
+    </div>
+}
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Contact.FirstName"
+                           class="form-label">
+                        Jméno *
+                    </label>
+                    <input asp-for="Contact.FirstName"
+                           class="form-control"
+                           placeholder="Jan" />
+                    <span asp-validation-for="Contact.FirstName"
+                          class="text-danger">
+                    </span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Contact.LastName"
+                           class="form-label">
+                        Příjmení *
+                    </label>
+                    <input asp-for="Contact.LastName"
+                           class="form-control"
+                           placeholder="Novák" />
+                    <span asp-validation-for="Contact.LastName"
+                          class="text-danger">
+                    </span>
+                    <div id="contactNameResults"
+                         class="list-group shadow-sm mt-1"
+                         style="display:none;">
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Contact.CompanyId"
+                           class="form-label">
+                        Firma *
+                    </label>
+                    <select asp-for="Contact.CompanyId"
+                            asp-items="Model.CompaniesList"
+                            class="form-select">
+                        <option value="">-- Vyberte firmu --</option>
+                    </select>
+                    <span asp-validation-for="Contact.CompanyId"
+                          class="text-danger">
+                    </span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Contact.Position"
+                           class="form-label">
+                        Pracovní pozice
+                    </label>
+                    <input asp-for="Contact.Position"
+                           class="form-control"
+                           placeholder="Obchodní ředitel" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Contact.Email"
+                           class="form-label">
+                        E-mail
+                    </label>
+                    <input asp-for="Contact.Email"
+                           class="form-control"
+                           placeholder="jan.novak@firma.cz" />
+                    <span asp-validation-for="Contact.Email"
+                          class="text-danger">
+                    </span>
+                    <div id="contactEmailResults"
+                         class="list-group shadow-sm mt-1"
+                         style="display:none;">
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Contact.Phone"
+                           class="form-label">
+                        Telefon
+                    </label>
+                    <input asp-for="Contact.Phone"
+                           class="form-control"
+                           placeholder="+420 123 456 789" />
+                </div>
+
+                <div class="col-12 mb-3">
+                    <div class="form-check">
+                        <input asp-for="Contact.IsPrimary"
+                               class="form-check-input" />
+                        <label asp-for="Contact.IsPrimary"
+                               class="form-check-label">
+                            Hlavní kontaktní osoba firmy
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+            <hr />
+
+            <div class="d-flex justify-content-end gap-2">
+
+                <a asp-page="./Index"
+                   class="btn btn-outline-secondary">
+                    Zrušit
+                </a>
+
+                <button type="submit"
+                        class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i>
+                    @(Model.EmailDuplicateWarning
+                        ? "Uložit i přesto"
+                        : "Uložit kontakt")
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const firstNameInput =
+                document.getElementById("Contact_FirstName");
+
+            const lastNameInput =
+                document.getElementById("Contact_LastName");
+
+            const emailInput =
+                document.getElementById("Contact_Email");
+
+            const nameResults =
+                document.getElementById("contactNameResults");
+
+            const emailResults =
+                document.getElementById("contactEmailResults");
+
+            const searchUrl =
+                '@Url.Page("./Create", "SearchContacts")';
+
+            let nameTimer;
+            let emailTimer;
+            let nameRequest = 0;
+            let emailRequest = 0;
+
+            async function searchContacts(type) {
+
+                const isEmail = type === "email";
+
+                const results = isEmail
+                    ? emailResults
+                    : nameResults;
+
+                const url = new URL(
+                    searchUrl,
+                    window.location.origin
+                );
+
+                if (isEmail) {
+
+                    const email = emailInput.value.trim();
+
+                    if (email.length < 3) {
+                        results.style.display = "none";
+                        return;
+                    }
+
+                    url.searchParams.set("email", email);
+
+                } else {
+
+                    const firstName = firstNameInput.value.trim();
+                    const lastName = lastNameInput.value.trim();
+
+                    if (firstName.length < 2 &&
+                        lastName.length < 2) {
+                        results.style.display = "none";
+                        return;
+                    }
+
+                    url.searchParams.set("firstName", firstName);
+                    url.searchParams.set("lastName", lastName);
+                }
+
+                const requestId = isEmail
+                    ? ++emailRequest
+                    : ++nameRequest;
+
+                try {
+
+                    const response = await fetch(url);
+
+                    if (!response.ok) {
+                        throw new Error("Chyba vyhledávání kontaktů.");
+                    }
+
+                    const contacts = await response.json();
+
+                    if (requestId !== (isEmail
+                        ? emailRequest
+                        : nameRequest)) {
+                        return;
+                    }
+
+                    results.innerHTML = "";
+
+                    if (contacts.length === 0) {
+                        results.style.display = "none";
+                        return;
+                    }
+
+                    contacts.forEach(function (contact) {
+
+                        const link = document.createElement("a");
+
+                        link.href = contact.editUrl;
+
+                        link.className =
+                            "list-group-item list-group-item-action";
+
+                        const name = document.createElement("strong");
+
+                        name.textContent =
+                            contact.firstName + " " + contact.lastName;
+
+                        link.appendChild(name);
+
+                        const company = document.createElement("div");
+
+                        company.className = "small text-muted";
+                        company.textContent = contact.companyName;
+
+                        link.appendChild(company);
+
+                        if (contact.position) {
+
+                            const position = document.createElement("div");
+
+                            position.className = "small text-muted";
+                            position.textContent = contact.position;
+
+                            link.appendChild(position);
+                        }
+
+                        if (contact.email) {
+
+                            const email = document.createElement("div");
+
+                            email.className = "small text-muted";
+                            email.textContent = contact.email;
+
+                            link.appendChild(email);
+                        }
+
+                        results.appendChild(link);
+                    });
+
+                    results.style.display = "block";
+
+                } catch (error) {
+
+                    console.error(error);
+                    results.style.display = "none";
+                }
+            }
+
+            function scheduleNameSearch() {
+
+                clearTimeout(nameTimer);
+
+                nameTimer = setTimeout(function () {
+                    searchContacts("name");
+                }, 300);
+            }
+
+            function scheduleEmailSearch() {
+
+                clearTimeout(emailTimer);
+
+                emailTimer = setTimeout(function () {
+                    searchContacts("email");
+                }, 300);
+            }
+
+            firstNameInput.addEventListener(
+                "input",
+                scheduleNameSearch
+            );
+
+            lastNameInput.addEventListener(
+                "input",
+                scheduleNameSearch
+            );
+
+            emailInput.addEventListener(
+                "input",
+                scheduleEmailSearch
+            );
+
+            document.addEventListener("click", function (event) {
+
+                if (!nameResults.contains(event.target) &&
+                    !firstNameInput.contains(event.target) &&
+                    !lastNameInput.contains(event.target)) {
+
+                    nameResults.style.display = "none";
+                }
+
+                if (!emailResults.contains(event.target) &&
+                    !emailInput.contains(event.target)) {
+
+                    emailResults.style.display = "none";
+                }
+            });
+
+        });
+    </script>
+}

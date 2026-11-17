@@ -1,0 +1,155 @@
+﻿
+@page "{id:int}"
+@model PartnerCRM.Pages.Companies.DeleteModel
+
+@{
+    ViewData["Title"] = "Smazání firmy";
+}
+
+<div class="mb-4">
+    <h2 class="mb-1">Smazání firmy</h2>
+    <p class="text-muted mb-0">
+        Kontrola údajů a historie společnosti.
+    </p>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+
+        <div asp-validation-summary="All"
+             class="alert alert-danger"></div>
+
+        <dl class="row mb-4">
+
+            <dt class="col-sm-3">Název firmy</dt>
+            <dd class="col-sm-9">@Model.Company.Name</dd>
+
+            <dt class="col-sm-3">IČO</dt>
+            <dd class="col-sm-9">@Model.Company.ICO</dd>
+
+            <dt class="col-sm-3">DIČ</dt>
+            <dd class="col-sm-9">@Model.Company.DIC</dd>
+
+            <dt class="col-sm-3">Ulice</dt>
+            <dd class="col-sm-9">@Model.Company.Street</dd>
+
+            <dt class="col-sm-3">Číslo popisné / orientační</dt>
+            <dd class="col-sm-9">@Model.Company.HouseNumber</dd>
+
+        </dl>
+
+        <hr />
+
+        <h5 class="mb-3">Evidence navázaných záznamů</h5>
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-md-6">
+                <div class="border rounded p-3">
+                    <div class="text-muted small">Kontakty</div>
+                    <div class="fs-4 fw-semibold">
+                        @Model.ContactCount
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="border rounded p-3">
+                    <div class="text-muted small">Působení kontaktů</div>
+                    <div class="fs-4 fw-semibold">
+                        @Model.EmploymentCount
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="border rounded p-3">
+                    <div class="text-muted small">Aktivity</div>
+                    <div class="fs-4 fw-semibold">
+                        @Model.ActivityCount
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="border rounded p-3">
+                    <div class="text-muted small">Úkoly</div>
+                    <div class="fs-4 fw-semibold">
+                        @Model.TaskCount
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="border rounded p-3">
+                    <div class="text-muted small">Pobočky</div>
+                    <div class="fs-4 fw-semibold">
+                        @Model.BranchCount
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="border rounded p-3">
+                    <div class="text-muted small">Sloučené firmy</div>
+                    <div class="fs-4 fw-semibold">
+                        @Model.MergedCompanyCount
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        @if (Model.HasDependencies)
+        {
+            <div class="alert alert-warning">
+                <strong>Firmu nelze smazat.</strong>
+
+                Firma má evidované navázané záznamy.
+                Jejím odstraněním bychom mohli poškodit
+                historii CRM nebo organizační strukturu.
+
+                <hr />
+
+                Doporučujeme firmu ponechat v databázi
+                nebo ji sloučit s jinou firmou.
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle"></i>
+                Firma nemá žádné evidované navázané záznamy.
+                Opravdu ji chcete trvale odstranit?
+                Tuto operaci nelze vrátit zpět.
+            </div>
+        }
+
+        <form method="post">
+
+            <input type="hidden"
+                   name="id"
+                   value="@Model.Company.Id" />
+
+            <div class="d-flex justify-content-end gap-2">
+
+                <a asp-page="./Index"
+                   class="btn btn-outline-secondary">
+                    Zpět
+                </a>
+
+                @if (!Model.HasDependencies)
+                {
+                    <button type="submit"
+                            class="btn btn-danger">
+                        <i class="bi bi-trash"></i>
+                        Ano, smazat firmu
+                    </button>
+                }
+
+            </div>
+
+        </form>
+
+    </div>
+</div>

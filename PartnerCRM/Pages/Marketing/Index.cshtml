@@ -1,0 +1,212 @@
+﻿
+@page
+@model PartnerCRM.Pages.Marketing.IndexModel
+
+@{
+    ViewData["Title"] = "Marketingové akce";
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Marketingové akce</h2>
+            <p class="text-muted mb-0">
+                Správa marketingových kampaní a hromadné komunikace.
+            </p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close"
+                    data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["Error"]
+            <button type="button" class="btn-close"
+                    data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Založení nové marketingové akce -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <strong>Nová marketingová akce</strong>
+        </div>
+
+        <div class="card-body">
+            <form method="post" asp-page-handler="Add">
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+                        <label class="form-label">Název akce</label>
+                        <input type="text"
+                               name="name"
+                               class="form-control"
+                               maxlength="150"
+                               placeholder="Např. GEORGE – oslovení průmyslových firem"
+                               required />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">E-mailová šablona</label>
+
+                        <select name="emailTemplateId"
+                                class="form-select">
+                            <option value="">-- Zatím nevybráno --</option>
+
+                            @foreach (var template in Model.EmailTemplates)
+                            {
+                                <option value="@template.Id">
+                                    @template.Name
+                                </option>
+                            }
+                        </select>
+
+                        <small class="text-muted">
+                            Šablonu bude možné vybrat také později.
+                        </small>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Popis akce</label>
+                        <input type="text"
+                               name="description"
+                               class="form-control"
+                               maxlength="1000"
+                               placeholder="Interní poznámka k akci" />
+                    </div>
+
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i>
+                            Vytvořit marketingovou akci
+                        </button>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Přehled marketingových akcí -->
+    <div class="card">
+        <div class="card-header">
+            <strong>Přehled marketingových akcí</strong>
+        </div>
+
+        <div class="card-body">
+
+            @if (Model.Campaigns.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Název akce</th>
+                                <th>E-mailová šablona</th>
+                                <th>Počet příjemců</th>
+                                <th>Stav</th>
+                                <th>Vytvořeno</th>
+                                <th class="text-end">Akce</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var campaign in Model.Campaigns)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-page="/Marketing/Details"
+                                           asp-route-id="@campaign.Id"
+                                           class="text-decoration-none fw-bold">
+                                            @campaign.Name
+                                        </a>
+
+                                        @if (!string.IsNullOrWhiteSpace(campaign.Description))
+                                        {
+                                            <div class="text-muted small">
+                                                @campaign.Description
+                                            </div>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @(campaign.EmailTemplate?.Name ?? "Nevybrána")
+                                    </td>
+
+                                    <td>
+                                        @campaign.Recipients.Count
+                                    </td>
+
+                                    <td>
+                                        @if (campaign.Status == "Příprava")
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Příprava
+                                            </span>
+                                        }
+                                        else if (campaign.Status == "Odesláno")
+                                        {
+                                            <span class="badge bg-success">
+                                                Odesláno
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info">
+                                                @campaign.Status
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @campaign.CreatedAt.ToString("dd.MM.yyyy")
+                                    </td>
+                                    <td class="text-end text-nowrap">
+                                        <a asp-page="/Marketing/Details"
+                                           asp-route-id="@campaign.Id"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                            @(campaign.Status == "Příprava" ? "Upravit" : "Detail")
+                                        </a>
+
+                                        @if (campaign.Status == "Příprava")
+                                        {
+                                            <form method="post"
+                                                  asp-page-handler="Delete"
+                                                  asp-route-id="@campaign.Id"
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('Opravdu chcete smazat marketingovou akci včetně všech jejích příjemců?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                    Smazat
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted mb-0">
+                    Zatím nebyla vytvořena žádná marketingová akce.
+                </p>
+            }
+
+        </div>
+    </div>
+
+</div>

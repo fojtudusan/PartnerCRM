@@ -1,0 +1,140 @@
+﻿@page
+@model PartnerCRM.Pages.Tasks.IndexModel
+
+@{
+    ViewData["Title"] = "Úkoly";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>Úkoly</h2>
+        <p class="text-muted mb-0">
+            Přehled obchodních a pracovních úkolů
+        </p>
+    </div>
+
+    <a asp-page="./Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i>
+        Nový úkol
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+
+        @if (Model.Tasks.Any())
+        {
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Termín</th>
+                        <th>Úkol</th>
+                        <th>Firma</th>
+                        <th>Kontaktní osoba</th>
+                        <th>Priorita</th>
+                        <th>Stav</th>
+                        <th>Akce</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var task in Model.Tasks)
+                    {
+                        var priorityClass = task.Priority switch
+                        {
+                            "Vysoká" => "bg-danger",
+                            "Nízká" => "bg-secondary",
+                            _ => "bg-primary"
+                        };
+
+                        var statusClass = task.Status switch
+                        {
+                            "Nový" => "bg-info text-dark",
+                            "Probíhá" => "bg-warning text-dark",
+                            "Splněno" => "bg-success",
+                            "Zrušeno" => "bg-secondary",
+                            _ => "bg-light text-dark"
+                        };
+                        
+                                var today = DateTime.Today;
+
+                                var dueClass = task.Status == "Splněno"
+                                    ? "text-success"
+                                    : task.Status == "Zrušeno"
+                                        ? "text-muted"
+                                        : task.DueDate.Date < today
+                                            ? "text-danger fw-bold"
+                                            : task.DueDate.Date == today
+                                                ? "text-warning fw-bold"
+                                                : task.DueDate.Date <= today.AddDays(3)
+                                                    ? "text-warning"
+                                                    : "";
+                            
+                        <tr>
+                           <td>
+                                <span class="fw-bold @dueClass">
+                                    @task.DueDate.ToString("dd.MM.yyyy HH:mm")
+                                </span>
+                            </td>
+
+                            <td>
+                                <strong>@task.Title</strong>
+                            </td>
+
+                            <td>
+                                @(task.Company?.Name ?? "—")
+                            </td>
+
+                            <td>
+                                @if (task.Contact != null)
+                                {
+                                    @task.Contact.FirstName
+                                    @:
+                                    @task.Contact.LastName
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+
+                            <td>
+                                <span class="badge @priorityClass">
+                                    @task.Priority
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="badge @statusClass">
+                                    @task.Status
+                                </span>
+                            </td>
+                            <td class="text-nowrap">
+                                <a asp-page="./Edit"
+                                   asp-route-id="@task.Id"
+                                   class="btn btn-sm btn-outline-primary"
+                                   title="Upravit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+
+                                <a asp-page="./Delete"
+                                   asp-route-id="@task.Id"
+                                   class="btn btn-sm btn-outline-danger"
+                                   title="Smazat">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="p-4 text-muted">
+                Zatím nejsou evidovány žádné úkoly.
+            </div>
+        }
+
+    </div>
+</div>

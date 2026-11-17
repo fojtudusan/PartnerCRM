@@ -1,0 +1,207 @@
+﻿
+@page
+@model PartnerCRM.Pages.Marketing.CheckModel
+
+@{
+    ViewData["Title"] = "Kontrola marketingové kampaně";
+}
+
+<div class="container-fluid">
+
+    <!-- Hlavička -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="bi bi-clipboard-check"></i> Kontrola kampaně</h2>
+            <p class="text-muted mb-0">@Model.Campaign.Name</p>
+        </div>
+
+        <a asp-page="/Marketing/Details"
+           asp-route-id="@Model.Campaign.Id"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+            Zpět na kampaň
+        </a>
+    </div>
+
+    <!-- Souhrn -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Celkem příjemců</div>
+                    <div class="fs-2 fw-bold">
+                        @Model.RecipientCount
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Platné e-mailové adresy</div>
+                    <div class="fs-2 fw-bold text-success">
+                        @Model.ValidEmailCount
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-muted small">Zjištěné chyby</div>
+                    <div class="fs-2 fw-bold @(Model.Errors.Any() ? "text-danger" : "text-success")">
+                        @Model.Errors.Count
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Výsledek kontroly -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <strong>Výsledek kontroly</strong>
+        </div>
+
+        <div class="card-body">
+
+            @if (Model.Errors.Any())
+            {
+                <div class="alert alert-danger">
+                    <h5>
+                        <i class="bi bi-x-circle"></i>
+                        Kampaň obsahuje chyby
+                    </h5>
+
+                    <p>
+                        Před rozesláním je nutné odstranit následující problémy:
+                    </p>
+
+                    <ul class="mb-0">
+                        @foreach (var error in Model.Errors)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-success">
+                    <h5>
+                        <i class="bi bi-check-circle"></i>
+                        Nebyly zjištěny žádné chyby
+                    </h5>
+
+                    Z hlediska základních kontrol je kampaň v pořádku.
+                </div>
+            }
+
+            @if (Model.Warnings.Any())
+            {
+                <div class="alert alert-warning">
+                    <h5>
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Upozornění
+                    </h5>
+
+                    <ul class="mb-0">
+                        @foreach (var warning in Model.Warnings)
+                        {
+                            <li>@warning</li>
+                        }
+                    </ul>
+                </div>
+            }
+            else if (!Model.Errors.Any())
+            {
+                <div class="text-success">
+                    <i class="bi bi-check-circle"></i>
+                    Nebyla zjištěna žádná upozornění.
+                </div>
+            }
+
+        </div>
+    </div>
+
+    <!-- Použitá šablona -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <strong>Použitá e-mailová šablona</strong>
+        </div>
+
+        <div class="card-body">
+            @if (Model.Campaign.EmailTemplate != null)
+            {
+                <p class="mb-1">
+                    <strong>Název:</strong>
+                    @Model.Campaign.EmailTemplate.Name
+                </p>
+
+                <p class="mb-0">
+                    <strong>Předmět:</strong>
+                    @Model.Campaign.EmailTemplate.Subject
+                </p>
+            }
+            else
+            {
+                <span class="text-danger">
+                    Není přiřazena žádná šablona.
+                </span>
+            }
+        </div>
+    </div>
+
+    <!-- Příprava k odeslání -->
+    @if (!Model.Errors.Any() &&
+         Model.Campaign.Status == "Příprava")
+    {
+        <div class="card mb-4 border-success">
+            <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div>
+                    <h5 class="mb-1">
+                        <i class="bi bi-check-circle text-success"></i>
+                        Kampaň je připravena
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        Kontrola neodhalila žádné chyby. Kampaň můžete označit jako připravenou k odeslání.
+                    </p>
+                </div>
+
+                <form method="post" asp-page-handler="Prepare">
+                    <input type="hidden" name="id"
+                           value="@Model.Campaign.Id" />
+
+                    <button type="submit"
+                            class="btn btn-success btn-lg"
+                            onclick="return confirm('Opravdu chcete označit kampaň jako připravenou k odeslání?');">
+                        <i class="bi bi-check-circle"></i>
+                        Připravit k odeslání
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    }
+    else if (Model.Campaign.Status == "Připraveno k odeslání")
+    {
+        <div class="alert alert-success mb-4">
+            <i class="bi bi-check-circle"></i>
+            Tato kampaň již byla připravena k odeslání.
+        </div>
+    }
+
+    <!-- Informační upozornění -->
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i>
+        Tato kontrola zatím pouze vyhodnocuje připravenost kampaně.
+        Žádné e-maily nebyly odeslány.
+    </div>
+
+</div>

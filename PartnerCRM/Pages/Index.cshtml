@@ -1,0 +1,308 @@
+﻿
+@page
+@model IndexModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+
+    var cs = new System.Globalization.CultureInfo("cs-CZ");
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Dashboard</h2>
+        <p class="text-muted mb-0">
+            Přehled obchodních aktivit a úkolů
+        </p>
+    </div>
+
+    <div class="text-muted">
+        <i class="bi bi-calendar3"></i>
+        @DateTime.Today.ToString("d. MMMM yyyy", cs)
+    </div>
+</div>
+
+<!-- Rychlé statistiky -->
+<div class="row g-3 mb-4">
+
+    <div class="col-6 col-lg">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Firmy</div>
+                <div class="fs-2 fw-bold text-primary">
+                    @Model.CompaniesCount
+                </div>
+                <a asp-page="/Companies/Index"
+                   class="small text-decoration-none">
+                    Zobrazit firmy →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Kontakty</div>
+                <div class="fs-2 fw-bold text-info">
+                    @Model.ContactsCount
+                </div>
+                <a asp-page="/Contacts/Index"
+                   class="small text-decoration-none">
+                    Zobrazit kontakty →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Aktivity celkem</div>
+                <div class="fs-2 fw-bold text-success">
+                    @Model.ActivitiesCount
+                </div>
+                <a asp-page="/Activities/Index"
+                   class="small text-decoration-none">
+                    Zobrazit aktivity →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Otevřené úkoly</div>
+                <div class="fs-2 fw-bold text-warning">
+                    @Model.OpenTasksCount
+                </div>
+                <a asp-page="/Tasks/Index"
+                   class="small text-decoration-none">
+                    Zobrazit úkoly →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-lg">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Po termínu</div>
+                <div class="fs-2 fw-bold text-danger">
+                    @Model.OverdueTasksCount
+                </div>
+                <a asp-page="/Tasks/Index"
+                   class="small text-decoration-none">
+                    Zkontrolovat úkoly →
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Hlavní obsah -->
+<div class="row g-4">
+
+    <!-- Nadcházející úkoly -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-check2-square text-primary"></i>
+                    Nadcházející úkoly
+                </h5>
+
+                <a asp-page="/Tasks/Index"
+                   class="small text-decoration-none">
+                    Všechny úkoly →
+                </a>
+            </div>
+
+            <div class="card-body p-0">
+
+                @if (Model.UpcomingTasks.Any())
+                {
+                    <div class="list-group list-group-flush">
+
+                        @foreach (var task in Model.UpcomingTasks)
+                        {
+                            var today = DateTime.Today;
+
+                            var dueClass = task.DueDate.Date < today
+                                ? "text-danger fw-bold"
+                                : task.DueDate.Date == today
+                                    ? "text-warning fw-bold"
+                                    : "";
+
+                            <a asp-page="/Tasks/Edit"
+                               asp-route-id="@task.Id"
+                               class="list-group-item list-group-item-action">
+
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="me-3">
+                                        <div class="fw-semibold">
+                                            @task.Title
+                                        </div>
+
+                                        <div class="small text-muted">
+                                            @(task.Company?.Name ?? "Bez přiřazené firmy")
+                                        </div>
+                                    </div>
+
+                                    <div class="text-end">
+                                        <div class="@dueClass small">
+                                            @task.DueDate.ToString("d. M. yyyy")
+                                        </div>
+
+                                        <span class="badge @(task.Priority == "Vysoká" ? "bg-danger" : task.Priority == "Nízká" ? "bg-secondary" : "bg-primary")">
+                                            @task.Priority
+                                        </span>
+                                    </div>
+                                </div>
+
+                            </a>
+                        }
+
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-check-circle fs-2"></i>
+                        <p class="mb-0 mt-2">
+                            Nemáte žádné otevřené úkoly.
+                        </p>
+                    </div>
+                }
+
+            </div>
+
+            <div class="card-footer bg-white">
+                <a asp-page="/Tasks/Create"
+                   class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-lg"></i>
+                    Nový úkol
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Poslední aktivity -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history text-success"></i>
+                    Poslední obchodní aktivity
+                </h5>
+
+                <a asp-page="/Activities/Index"
+                   class="small text-decoration-none">
+                    Všechny aktivity →
+                </a>
+            </div>
+
+            <div class="card-body p-0">
+
+                @if (Model.RecentActivities.Any())
+                {
+                    <div class="list-group list-group-flush">
+
+                        @foreach (var activity in Model.RecentActivities)
+                        {
+                            <a asp-page="/Activities/Edit"
+                               asp-route-id="@activity.Id"
+                               class="list-group-item list-group-item-action">
+
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="me-3">
+                                        <div class="fw-semibold">
+                                            @activity.Subject
+                                        </div>
+
+                                        <div class="small text-muted">
+                                            @(activity.Company?.Name ?? "Bez firmy")
+                                            · @activity.Type
+                                        </div>
+                                    </div>
+
+                                    <div class="text-muted small text-nowrap">
+                                        @activity.ActivityDate.ToString("d. M. yyyy")
+                                    </div>
+                                </div>
+
+                            </a>
+                        }
+
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-chat-square-text fs-2"></i>
+                        <p class="mb-0 mt-2">
+                            Zatím nemáte žádné obchodní aktivity.
+                        </p>
+                    </div>
+                }
+
+            </div>
+
+            <div class="card-footer bg-white">
+                <a asp-page="/Activities/Create"
+                   class="btn btn-sm btn-success">
+                    <i class="bi bi-plus-lg"></i>
+                    Nová aktivita
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- Rychlé akce -->
+<div class="card shadow-sm mt-4">
+    <div class="card-body">
+        <h5 class="mb-3">Rychlé akce</h5>
+
+        <div class="d-flex flex-wrap gap-2">
+
+            <a asp-page="/Companies/Create"
+               class="btn btn-outline-primary">
+                <i class="bi bi-building"></i>
+                Nová firma
+            </a>
+
+            <a asp-page="/Contacts/Create"
+               class="btn btn-outline-info">
+                <i class="bi bi-person-plus"></i>
+                Nový kontakt
+            </a>
+
+            <a asp-page="/Activities/Create"
+               class="btn btn-outline-success">
+                <i class="bi bi-chat-dots"></i>
+                Nová aktivita
+            </a>
+
+            <a asp-page="/Tasks/Create"
+               class="btn btn-outline-warning">
+                <i class="bi bi-check2-square"></i>
+                Nový úkol
+            </a>
+
+            <a asp-page="/Calendar/Index"
+               class="btn btn-outline-secondary">
+                <i class="bi bi-calendar3"></i>
+                Kalendář
+            </a>
+
+        </div>
+    </div>
+</div>
