@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -23,8 +24,10 @@ namespace PartnerCRM.Pages.Activities
 
         [BindProperty(SupportsGet = true)]
         public int? CompanyId { get; set; }
+
         [BindProperty(SupportsGet = true)]
         public string? ActivityType { get; set; }
+
         [BindProperty(SupportsGet = true)]
         public DateTime? DateFrom { get; set; }
 
@@ -35,6 +38,7 @@ namespace PartnerCRM.Pages.Activities
         {
             CompaniesList = new SelectList(
                 await _context.Companies
+                    .Where(c => !c.IsMerged)
                     .OrderBy(c => c.Name)
                     .ToListAsync(),
                 "Id",
@@ -44,21 +48,33 @@ namespace PartnerCRM.Pages.Activities
             var query = _context.Activities
                 .Include(a => a.Company)
                 .Include(a => a.Contact)
+                .Include(a => a.ParentActivity)
                 .AsQueryable();
 
             if (CompanyId.HasValue)
             {
-                query = query.Where(a => a.CompanyId == CompanyId.Value);
+                query = query.Where(a =>
+                    a.CompanyId == CompanyId.Value);
             }
+
+            if (!string.IsNullOrEmpty(ActivityType))
+            {
+                query = query.Where(a =>
+                    a.Type == ActivityType);
+            }
+
             if (DateFrom.HasValue)
             {
-                query = query.Where(a => a.ActivityDate >= DateFrom.Value);
+                query = query.Where(a =>
+                    a.ActivityDate >= DateFrom.Value.Date);
             }
 
             if (DateTo.HasValue)
             {
                 var endDate = DateTo.Value.Date.AddDays(1);
-                query = query.Where(a => a.ActivityDate < endDate);
+
+                query = query.Where(a =>
+                    a.ActivityDate < endDate);
             }
 
             Activities = await query

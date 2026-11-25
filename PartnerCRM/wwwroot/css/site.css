@@ -77,6 +77,56 @@ body {
         color: #ffffff;
     }
 
+/* Číselníky – tlačítko má stejný vzhled jako ostatní odkazy */
+
+.crm-nav-toggle {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    width: 100%;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #c4cede;
+    font-family: inherit;
+    font-size: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: 0.2s;
+    appearance: none;
+}
+
+    .crm-nav-toggle i {
+        font-size: 18px;
+    }
+
+    .crm-nav-toggle:hover,
+    .crm-nav-toggle:focus,
+    .crm-nav-toggle:active,
+    .crm-nav-toggle[aria-expanded="true"] {
+        background: #29466d;
+        color: #ffffff;
+        outline: none;
+        box-shadow: none;
+    }
+
+/* Podúroveň číselníků */
+
+.crm-subnav {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding-left: 18px;
+}
+
+    .crm-subnav .crm-nav-link {
+        padding-left: 15px;
+        font-size: 0.9rem;
+    }
+
+/* Patička navigace */
+
 .sidebar-footer {
     margin-top: auto;
     padding: 22px 25px;
@@ -90,6 +140,8 @@ body {
     .sidebar-footer i {
         font-size: 23px;
     }
+
+/* Hlavní obsah */
 
 .main-area {
     flex: 1;
@@ -137,6 +189,8 @@ body {
     background: #ffffff;
 }
 
+/* Mobilní zobrazení */
+
 @media (max-width: 768px) {
     .sidebar {
         width: 65px;
@@ -159,10 +213,19 @@ body {
         padding: 10px 6px;
     }
 
-    .crm-nav-link {
+    .crm-nav-link,
+    .crm-nav-toggle {
         justify-content: center;
         padding: 13px 5px;
     }
+
+    .crm-subnav {
+        padding-left: 0;
+    }
+
+        .crm-subnav .crm-nav-link {
+            padding: 13px 5px;
+        }
 
     .content {
         padding: 15px;

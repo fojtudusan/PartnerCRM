@@ -51,7 +51,19 @@
                 <span asp-validation-for="Activity.ContactId"
                       class="text-danger"></span>
             </div>
+            <div class="mb-3">
+                <label asp-for="Activity.MarketingCampaignId"
+                       class="form-label">Marketingová kampaň</label>
 
+                <select asp-for="Activity.MarketingCampaignId"
+                        asp-items="Model.MarketingCampaignsList"
+                        class="form-select">
+                    <option value="">-- Bez marketingové kampaně --</option>
+                </select>
+
+                <span asp-validation-for="Activity.MarketingCampaignId"
+                      class="text-danger"></span>
+            </div>
             <div class="mb-3">
                 <label asp-for="Activity.Type"
                        class="form-label">Typ aktivity *</label>

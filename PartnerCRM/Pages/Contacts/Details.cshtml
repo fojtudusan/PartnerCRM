@@ -1,0 +1,250 @@
+﻿
+@page "{id:int}"
+@model PartnerCRM.Pages.Contacts.DetailsModel
+
+@{
+    ViewData["Title"] = "Detail kontaktu";
+
+    var currentEmployments = Model.Contact.Employments
+        .Where(e => e.IsCurrent)
+        .OrderBy(e => e.Company?.Name)
+        .ToList();
+
+    var employmentHistory = Model.Contact.Employments
+        .Where(e => !e.IsCurrent)
+        .OrderByDescending(e => e.DateFrom)
+        .ToList();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="mb-1">
+            @Model.Contact.FirstName @Model.Contact.LastName
+        </h2>
+        <p class="text-muted mb-0">Detail kontaktní osoby</p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a asp-page="./Edit"
+           asp-route-id="@Model.Contact.Id"
+           class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-pencil"></i> Upravit
+        </a>
+
+        <a asp-page="./Index"
+           class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Zpět
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body p-3">
+        <div class="row align-items-start">
+
+            <div class="col-auto">
+                @if (!string.IsNullOrWhiteSpace(Model.Contact.PhotoPath))
+                {
+                    <img src="@Model.Contact.PhotoPath"
+                         alt="Fotografie kontaktu"
+                         class="rounded"
+                         style="width:110px;height:110px;object-fit:cover;" />
+                }
+                else
+                {
+                    <div class="rounded bg-light d-flex align-items-center justify-content-center"
+                         style="width:110px;height:110px;">
+                        <i class="bi bi-person text-secondary"
+                           style="font-size:3rem;"></i>
+                    </div>
+                }
+            </div>
+
+            <div class="col">
+                <h5 class="mb-3">
+                    @Model.Contact.FirstName @Model.Contact.LastName
+                </h5>
+
+                <div class="row g-2 small">
+                    <div class="col-md-6">
+                        <span class="text-muted">E-mail:</span>
+                        @if (!string.IsNullOrWhiteSpace(Model.Contact.Email))
+                        {
+                            <a href="mailto:@Model.Contact.Email">
+                                @Model.Contact.Email
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Neuvedeno</span>
+                        }
+                    </div>
+
+                    <div class="col-md-6">
+                        <span class="text-muted">Telefon:</span>
+                        @if (!string.IsNullOrWhiteSpace(Model.Contact.Phone))
+                        {
+                            <a href="tel:@Model.Contact.Phone">
+                                @Model.Contact.Phone
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Neuvedeno</span>
+                        }
+                    </div>
+
+                    <div class="col-md-6">
+                        <span class="text-muted">Aktuální působení:</span>
+                        @currentEmployments.Count
+                    </div>
+
+                    <div class="col-md-6">
+                        <span class="text-muted">Historie působení:</span>
+                        @employmentHistory.Count
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.Contact.Notes))
+{
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body p-3">
+            <h6 class="mb-2">
+                <i class="bi bi-sticky"></i> Poznámka
+            </h6>
+            <div class="small" style="white-space:pre-wrap">@Model.Contact.Notes</div>
+        </div>
+    </div>
+}
+
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body p-3">
+        <h6 class="mb-3">
+            <i class="bi bi-building"></i> Aktuální působení
+        </h6>
+
+        @if (currentEmployments.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Firma</th>
+                            <th>Pozice</th>
+                            <th>Od</th>
+                            <th>Hlavní kontakt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var employment in currentEmployments)
+                        {
+                            <tr>
+                                <td>
+                                    @if (employment.Company != null)
+                                    {
+                                        <a asp-page="/Companies/Details"
+                                           asp-route-id="@employment.CompanyId">
+                                            @employment.Company.Name
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Neuvedeno</span>
+                                    }
+                                </td>
+                                <td>@employment.Position</td>
+                                <td>@employment.DateFrom.ToString("dd.MM.yyyy")</td>
+                                <td>
+                                    @if (employment.IsPrimary)
+                                    {
+                                        <span class="badge bg-success">Ano</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Ne</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted small mb-0">
+                Kontakt nemá žádné aktuální působení.
+            </p>
+        }
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body p-3">
+        <h6 class="mb-3">
+            <i class="bi bi-clock-history"></i> Historie působení
+        </h6>
+
+        @if (employmentHistory.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Firma</th>
+                            <th>Pozice</th>
+                            <th>Od</th>
+                            <th>Do</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var employment in employmentHistory)
+                        {
+                            <tr>
+                                <td>@employment.Company?.Name</td>
+                                <td>@employment.Position</td>
+                                <td>@employment.DateFrom.ToString("dd.MM.yyyy")</td>
+                                <td>@employment.DateTo?.ToString("dd.MM.yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted small mb-0">
+                Zatím není evidována žádná historie působení.
+            </p>
+        }
+    </div>
+</div>
+
+@if (Model.Contact.IsMerged)
+{
+    <div class="alert alert-secondary py-2 mb-3">
+        <strong>Archivovaný kontakt.</strong>
+        Tento kontakt byl sloučen s jiným kontaktem.
+
+        @if (Model.Contact.MergedIntoContact != null)
+        {
+            <div>
+                Sloučeno do:
+                @Model.Contact.MergedIntoContact.FirstName
+                @Model.Contact.MergedIntoContact.LastName
+            </div>
+        }
+
+        @if (Model.Contact.MergedAt.HasValue)
+        {
+            <div>
+                Datum sloučení:
+                @Model.Contact.MergedAt.Value.ToString("dd.MM.yyyy HH:mm")
+            </div>
+        }
+    </div>
+}

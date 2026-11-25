@@ -1,7 +1,6 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PartnerCRM.Data;
 using PartnerCRM.Models;
@@ -20,13 +19,15 @@ namespace PartnerCRM.Pages.Companies
         public IList<Company> Companies { get; set; }
             = new List<Company>();
 
-        public SelectList CompanyTypes { get; set; } = null!;
+        public IList<CompanyType> CompanyTypes { get; set; }
+            = new List<CompanyType>();
 
         [BindProperty(SupportsGet = true)]
         public string? SearchTerm { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public int? SelectedCompanyTypeId { get; set; }
+        public List<int> SelectedCompanyTypeIds { get; set; }
+            = new List<int>();
 
         [BindProperty(SupportsGet = true)]
         public bool ShowArchived { get; set; }
@@ -58,27 +59,21 @@ namespace PartnerCRM.Pages.Companies
                 );
             }
 
-            // Filtrování podle typu firmy
-            if (SelectedCompanyTypeId.HasValue)
+            // Filtrování podle více typů firmy (OR)
+            if (SelectedCompanyTypeIds.Any())
             {
                 query = query.Where(c =>
                     c.CompanyTypes.Any(t =>
-                        t.Id == SelectedCompanyTypeId.Value));
+                        SelectedCompanyTypeIds.Contains(t.Id)));
             }
 
             Companies = await query
                 .OrderBy(c => c.Name)
                 .ToListAsync();
 
-            var types = await _context.CompanyTypes
+            CompanyTypes = await _context.CompanyTypes
                 .OrderBy(t => t.Name)
                 .ToListAsync();
-
-            CompanyTypes = new SelectList(
-                types,
-                "Id",
-                "Name",
-                SelectedCompanyTypeId);
         }
     }
 }

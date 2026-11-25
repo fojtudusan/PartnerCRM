@@ -1,4 +1,11 @@
 ﻿
+@{
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
+
+    var catalogsExpanded =
+        currentPage.StartsWith("/Catalogs/") ||
+        currentPage == "/Marketing/EmailTemplates";
+}
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -53,25 +60,62 @@
                     <i class="bi bi-list-check"></i>
                     Úkoly
                 </a>
-                <a asp-page="/Catalogs/Index" class="crm-nav-link">
-                    <i class="bi bi-card-list"></i>
-                    Číselníky
-                </a>
+
                 <a asp-page="/Marketing/Index" class="crm-nav-link">
                     <i class="bi bi-megaphone"></i>
                     Marketingové akce
                 </a>
 
-                <a asp-page="/Marketing/EmailTemplates" class="crm-nav-link">
-                    <i class="bi bi-envelope"></i>
-                    E-mailové šablony
-                </a>
                 <a asp-page="/Marketing/Results" class="crm-nav-link">
                     <i class="bi bi-bar-chart-line"></i>
                     Evidence výsledků
                 </a>
-            </nav>
 
+              <div class="crm-nav-group">
+    <button class="crm-nav-link crm-nav-toggle"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#catalogsMenu"
+        aria-expanded="@(catalogsExpanded.ToString().ToLower())"
+        aria-controls="catalogsMenu">
+    <i class="bi bi-card-list"></i>
+    <span>Číselníky</span>
+    <i class="bi bi-chevron-down ms-auto"></i>
+</button>
+
+<div class="collapse @(catalogsExpanded ? "show" : "")" id="catalogsMenu">
+        <div class="crm-subnav">
+
+            <a asp-page="/Catalogs/ProductionAreas" class="crm-nav-link">
+                <i class="bi bi-diagram-3"></i>
+                Oblasti produkce
+            </a>
+
+            <a asp-page="/Catalogs/ProductTypes" class="crm-nav-link">
+                <i class="bi bi-box-seam"></i>
+                Typy zboží
+            </a>
+
+            <a asp-page="/Marketing/EmailTemplates" class="crm-nav-link">
+                <i class="bi bi-envelope"></i>
+                E-mailové šablony
+            </a>
+
+        </div>
+    </div>
+</div>
+            </nav>
+            @if (User.IsInRole("Admin"))
+{
+    <div class="crm-nav-group mt-2">
+        <div class="nav-caption">ADMINISTRACE</div>
+
+        <a asp-page="/Admin/Users/Index" class="crm-nav-link">
+            <i class="bi bi-person-gear"></i>
+            Uživatelé
+        </a>
+    </div>
+}
             <div class="sidebar-footer">
                 <i class="bi bi-person-circle"></i>
                 <span>Uživatel CRM</span>

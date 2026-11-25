@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace PartnerCRM.Models
@@ -14,6 +15,28 @@ namespace PartnerCRM.Models
         public int? CompanyId { get; set; }
 
         public int? ContactId { get; set; }
+
+        // Zdrojová aktivita – jednání, při kterém úkol vznikl
+        public int? ActivityId { get; set; }
+
+        [ValidateNever]
+        public Activity? Activity { get; set; }
+
+        // Nadřazený úkol
+        public int? ParentTaskId { get; set; }
+
+        [ValidateNever]
+        public CrmTask? ParentTask { get; set; }
+
+        // Podřízené úkoly
+        [ValidateNever]
+        public ICollection<CrmTask> ChildTasks { get; set; }
+            = new List<CrmTask>();
+
+        // Aktivity související s úkolem
+        [ValidateNever]
+        public ICollection<Activity> Activities { get; set; }
+            = new List<Activity>();
 
         [Required]
         public DateTime DueDate { get; set; }

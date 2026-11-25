@@ -12,17 +12,24 @@ namespace PartnerCRM.Pages.Contacts
     {
         private readonly ApplicationDbContext _context;
 
-        public CreateModel(ApplicationDbContext context)
+        public CreateModel(
+    ApplicationDbContext context,
+    IWebHostEnvironment environment)
         {
             _context = context;
+            _environment = environment;
         }
 
         [BindProperty]
         public Contact Contact { get; set; } = new();
+        [BindProperty]
+        public bool IsPrimary { get; set; }
+        [BindProperty]
+        public IFormFile? ContactPhoto { get; set; }
 
         [BindProperty]
         public bool ConfirmEmailDuplicate { get; set; }
-
+        private readonly IWebHostEnvironment _environment;
         public bool EmailDuplicateWarning { get; set; }
 
         public ContactMatch? EmailMatch { get; set; }
@@ -210,6 +217,42 @@ namespace PartnerCRM.Pages.Contacts
                 return Page();
             }
 
+            // Uložení fotografie kontaktu
+            if (ContactPhoto != null && ContactPhoto.Length > 0)
+            {
+                var extension = Path.GetExtension(ContactPhoto.FileName)
+                    .ToLowerInvariant();
+
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+                if (!allowedExtensions.Contains(extension) ||
+                    ContactPhoto.Length > 5 * 1024 * 1024)
+                {
+                    ModelState.AddModelError(
+                        nameof(ContactPhoto),
+                        "Fotografie musí být JPG, PNG nebo WEBP a maximálně 5 MB.");
+
+                    await LoadCompaniesAsync();
+                    return Page();
+                }
+
+                var uploadsFolder = Path.Combine(
+                    _environment.WebRootPath,
+                    "uploads",
+                    "contacts");
+
+                Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = $"{Guid.NewGuid()}{extension}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await ContactPhoto.CopyToAsync(stream);
+                }
+
+                Contact.PhotoPath = $"/uploads/contacts/{fileName}";
+            }
             // Vytvoření prvního aktivního působení
             var employment = new ContactEmployment
             {
@@ -217,7 +260,8 @@ namespace PartnerCRM.Pages.Contacts
                 CompanyId = Contact.CompanyId,
                 Position = Contact.Position,
                 DateFrom = DateTime.Today,
-                IsCurrent = true
+                IsCurrent = true,
+                IsPrimary = IsPrimary
             };
 
             Contact.Employments.Add(employment);

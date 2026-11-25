@@ -1,4 +1,5 @@
-﻿@page
+﻿
+@page
 @model PartnerCRM.Pages.Tasks.CreateModel
 
 @{
@@ -30,6 +31,42 @@
 
                 <span asp-validation-for="TaskItem.Title"
                       class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TaskItem.ParentTaskId"
+                       class="form-label">Nadřazený úkol</label>
+
+                <select asp-for="TaskItem.ParentTaskId"
+                        asp-items="Model.ParentTasksList"
+                        class="form-select">
+                    <option value="">-- Samostatný úkol --</option>
+                </select>
+
+                <div class="form-text">
+                    Výběrem nadřazeného úkolu vytvoříte podúkol.
+                    Firma, kontakt a zdrojová aktivita se převezmou
+                    z nadřazeného úkolu.
+                </div>
+
+                <span asp-validation-for="TaskItem.ParentTaskId"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TaskItem.ActivityId"
+                       class="form-label">Zdrojová aktivita</label>
+
+                <select asp-for="TaskItem.ActivityId"
+                        asp-items="Model.ActivitiesList"
+                        class="form-select"
+                        id="activitySelect">
+                    <option value="">-- Bez zdrojové aktivity --</option>
+                </select>
+
+                <div class="form-text">
+                    Jednání, při kterém úkol vznikl.
+                </div>
             </div>
 
             <div class="mb-3">
@@ -125,6 +162,7 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
 
+        const activitySelect = document.getElementById("activitySelect");
         const companySelect = document.getElementById("companySelect");
         const contactSelect = document.getElementById("contactSelect");
 
@@ -152,5 +190,21 @@
                 contactSelect.appendChild(option);
             });
         });
+
+        activitySelect.addEventListener("change", function () {
+
+            if (activitySelect.value) {
+                companySelect.disabled = true;
+                contactSelect.disabled = true;
+            } else {
+                companySelect.disabled = false;
+                contactSelect.disabled = false;
+            }
+        });
+
+        if (activitySelect.value) {
+            companySelect.disabled = true;
+            contactSelect.disabled = true;
+        }
     });
 </script>

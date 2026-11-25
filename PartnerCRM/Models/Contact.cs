@@ -29,7 +29,16 @@ namespace PartnerCRM.Models
         [StringLength(30)]
         public string? Phone { get; set; }
 
-        public bool IsPrimary { get; set; }
+        // Poznámka ke kontaktu
+        [StringLength(5000)]
+        public string? Notes { get; set; }
+
+        // Cesta k fotografii kontaktu
+        [StringLength(500)]
+        public string? PhotoPath { get; set; }
+
+        // Aktivita kontaktu
+        public bool IsActive { get; set; } = true;
 
         // Evidence sloučení kontaktů
         public bool IsMerged { get; set; } = false;

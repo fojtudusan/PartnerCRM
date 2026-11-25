@@ -1,0 +1,275 @@
+﻿
+@page "{id:int}"
+@model PartnerCRM.Pages.Tasks.DetailsModel
+
+@{
+    ViewData["Title"] = "Detail úkolu";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Detail úkolu</h2>
+        <p class="text-muted mb-0">Podrobnosti a související činnosti</p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a asp-page="./Edit"
+           asp-route-id="@Model.TaskItem.Id"
+           class="btn btn-outline-primary">
+            <i class="bi bi-pencil"></i> Upravit
+        </a>
+
+        <a asp-page="./Index"
+           class="btn btn-outline-secondary">
+            Zpět na úkoly
+        </a>
+    </div>
+</div>
+
+@{
+    var task = Model.TaskItem;
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h3 class="mb-2">@task.Title</h3>
+
+                @if (task.Status == "Nový")
+                {
+                    <span class="badge bg-info">Nový</span>
+                }
+                else if (task.Status == "Probíhá")
+                {
+                    <span class="badge bg-warning text-dark">Probíhá</span>
+                }
+                else if (task.Status == "Splněno")
+                {
+                    <span class="badge bg-success">Splněno</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">@task.Status</span>
+                }
+
+                @if (task.Priority == "Vysoká")
+                {
+                    <span class="badge bg-danger ms-1">Vysoká priorita</span>
+                }
+                else if (task.Priority == "Nízká")
+                {
+                    <span class="badge bg-secondary ms-1">Nízká priorita</span>
+                }
+                else
+                {
+                    <span class="badge bg-primary ms-1">Normální priorita</span>
+                }
+            </div>
+        </div>
+
+        <hr />
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <strong>Termín splnění</strong>
+                <div>@task.DueDate.ToString("dd.MM.yyyy HH:mm")</div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong>Dokončeno</strong>
+                <div>
+                    @(task.CompletedAt.HasValue
+                        ? task.CompletedAt.Value.ToString("dd.MM.yyyy HH:mm")
+                        : "—")
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong>Firma</strong>
+                <div>
+                    @if (task.Company != null)
+                    {
+                        <a asp-page="/Companies/Details"
+                           asp-route-id="@task.CompanyId">
+                            @task.Company.Name
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Bez přiřazené firmy</span>
+                    }
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <strong>Kontaktní osoba</strong>
+                <div>
+                    @if (task.Contact != null)
+                    {
+                        <a asp-page="/Contacts/Details"
+                           asp-route-id="@task.ContactId">
+                            @task.Contact.FirstName @task.Contact.LastName
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Bez kontaktní osoby</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(task.Description))
+        {
+            <hr />
+            <strong>Popis úkolu</strong>
+            <p class="mb-0 mt-2" style="white-space: pre-line">@task.Description</p>
+        }
+    </div>
+</div>
+
+@* Zdrojová aktivita *@
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Zdrojová aktivita</strong>
+    </div>
+
+    <div class="card-body">
+        @if (task.Activity != null)
+        {
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <strong>@task.Activity.Subject</strong>
+                    <div class="text-muted small">
+                        @task.Activity.ActivityDate.ToString("dd.MM.yyyy HH:mm")
+                        @if (task.Activity.Company != null)
+                        {
+                            <span> · @task.Activity.Company.Name</span>
+                        }
+                    </div>
+                </div>
+
+                <a asp-page="/Activities/Details"
+                   asp-route-id="@task.ActivityId"
+                   class="btn btn-sm btn-outline-primary">
+                    Zobrazit aktivitu
+                </a>
+            </div>
+        }
+        else
+        {
+            <span class="text-muted">Úkol nebyl vytvořen z konkrétní aktivity.</span>
+        }
+    </div>
+</div>
+
+@* Hierarchie úkolů *@
+<div class="card mb-4">
+    <div class="card-header">
+        <strong>Hierarchie úkolů</strong>
+    </div>
+
+    <div class="card-body">
+        @if (task.ParentTask != null)
+        {
+            <div class="mb-3">
+                <span class="text-muted">Nadřazený úkol:</span>
+                <div>
+                    <a asp-page="./Details"
+                       asp-route-id="@task.ParentTask.Id">
+                        @task.ParentTask.Title
+                    </a>
+                </div>
+            </div>
+        }
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <strong>Podúkoly</strong>
+
+            <a asp-page="./Create"
+               asp-route-parentTaskId="@task.Id"
+               class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-plus-lg"></i> Nový podúkol
+            </a>
+        </div>
+
+        @if (task.ChildTasks.Any())
+        {
+            <div class="list-group">
+                @foreach (var child in task.ChildTasks.OrderBy(t => t.DueDate))
+                {
+                    <a asp-page="./Details"
+                       asp-route-id="@child.Id"
+                       class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div>
+                                <strong>@child.Title</strong>
+                                <div class="small text-muted">
+                                    Termín: @child.DueDate.ToString("dd.MM.yyyy HH:mm")
+                                    @if (child.Company != null)
+                                    {
+                                        <span> · @child.Company.Name</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <span class="badge @(child.Status == "Splněno" ? "bg-success" : child.Status == "Probíhá" ? "bg-warning text-dark" : "bg-info")">
+                                @child.Status
+                            </span>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-muted mb-0">Tento úkol zatím nemá žádné podúkoly.</p>
+        }
+    </div>
+</div>
+
+@* Související aktivity *@
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Související aktivity</strong>
+
+        <a asp-page="/Activities/Create"
+           asp-route-taskId="@task.Id"
+           class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus-lg"></i> Nová aktivita
+        </a>
+    </div>
+
+    <div class="card-body">
+        @if (task.Activities.Any())
+        {
+            <div class="list-group">
+                @foreach (var activity in task.Activities.OrderByDescending(a => a.ActivityDate))
+                {
+                    <a asp-page="/Activities/Details"
+                       asp-route-id="@activity.Id"
+                       class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div>
+                                <strong>@activity.Subject</strong>
+                                <div class="small text-muted">
+                                    @activity.ActivityDate.ToString("dd.MM.yyyy HH:mm")
+                                    @if (activity.Company != null)
+                                    {
+                                        <span> · @activity.Company.Name</span>
+                                    }
+                                </div>
+                            </div>
+                            <span class="badge bg-secondary">@activity.Type</span>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-muted mb-0">K tomuto úkolu zatím nejsou přiřazeny žádné aktivity.</p>
+        }
+    </div>
+</div>

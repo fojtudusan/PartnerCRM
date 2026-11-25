@@ -1,0 +1,161 @@
+﻿
+@page
+@model PartnerCRM.Pages.Admin.Users.IndexModel
+
+@{
+    ViewData["Title"] = "Správa uživatelů";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Správa uživatelů</h2>
+        <p class="text-muted mb-0">
+            Přehled uživatelů systému PartnerCRM
+        </p>
+    </div>
+
+    <a asp-page="/Admin/Users/Invite" class="btn btn-primary">
+        <i class="bi bi-person-plus me-1"></i>
+        Pozvat uživatele
+    </a>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        @Model.StatusMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Registrovaní uživatelé -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Registrovaní uživatelé</h5>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>E-mail</th>
+                        <th>Přidělené role</th>
+                        <th>Stav</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model.Users.Any())
+                    {
+                        @foreach (var user in Model.Users)
+                        {
+                            <tr>
+                                <td>@user.Email</td>
+                                <td>
+                                    @if (user.Roles.Any())
+                                    {
+                                        @foreach (var role in user.Roles)
+                                        {
+                                            <span class="badge bg-secondary me-1">
+                                                @role
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Bez role</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">Registrován</span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-4">
+                                Zatím nejsou registrováni žádní uživatelé.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Čekající pozvánky -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Čekající pozvánky</h5>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>E-mail</th>
+                        <th>Přidělená role</th>
+                        <th>Vytvořeno</th>
+                        <th>Platnost do</th>
+                        <th>Stav</th>
+                        <th>Akce</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model.Invitations.Any())
+                    {
+                        @foreach (var invitation in Model.Invitations)
+                        {
+                            <tr>
+                                <td>@invitation.Email</td>
+                                <td>@invitation.Role</td>
+                                <td>
+                                    @invitation.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                </td>
+                                <td>
+                                    @invitation.ExpiresAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                </td>
+                                <td>
+                                    @if (invitation.IsExpired)
+                                    {
+                                        <span class="badge bg-danger">Vypršela</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">Čeká na přijetí</span>
+                                    }
+                                </td>
+                                <td>
+                                    <form method="post"
+                                          asp-page-handler="CancelInvitation"
+                                          asp-route-id="@invitation.Id"
+                                          onsubmit="return confirm('Opravdu chcete tuto pozvánku zrušit?');">
+
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash me-1"></i>
+                                            @(invitation.IsExpired ? "Odstranit" : "Zrušit")
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                Momentálně nejsou žádné čekající pozvánky.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

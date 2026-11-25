@@ -22,6 +22,7 @@ namespace PartnerCRM.Pages.Activities
 
         public SelectList CompaniesList { get; set; } = null!;
         public SelectList ContactsList { get; set; } = null!;
+        public SelectList MarketingCampaignsList { get; set; } = null!;
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
@@ -69,16 +70,29 @@ namespace PartnerCRM.Pages.Activities
                         e.CompanyId == Activity.CompanyId &&
                         e.IsCurrent &&
                         !e.Contact.IsMerged &&
+                        e.Contact.IsActive &&
                         !e.Company.IsMerged);
 
                 if (!employmentExists)
                 {
                     ModelState.AddModelError(
                         "Activity.ContactId",
-                        "Kontakt v této firmě aktuálně nepůsobí.");
+                        "Kontakt v této firmě aktuálně nepůsobí nebo není aktivní.");
                 }
             }
+            // Kontrola marketingové kampaně
+            if (Activity.MarketingCampaignId.HasValue)
+            {
+                var campaignExists = await _context.MarketingCampaigns
+                    .AnyAsync(c => c.Id == Activity.MarketingCampaignId.Value);
 
+                if (!campaignExists)
+                {
+                    ModelState.AddModelError(
+                        "Activity.MarketingCampaignId",
+                        "Vybraná marketingová kampaň neexistuje.");
+                }
+            }
             if (!ModelState.IsValid)
             {
                 await LoadListsAsync();
@@ -87,6 +101,7 @@ namespace PartnerCRM.Pages.Activities
 
             activity.CompanyId = Activity.CompanyId;
             activity.ContactId = Activity.ContactId;
+            activity.MarketingCampaignId = Activity.MarketingCampaignId;
             activity.Type = Activity.Type;
             activity.Subject = Activity.Subject;
             activity.ActivityDate = Activity.ActivityDate;
@@ -105,6 +120,7 @@ namespace PartnerCRM.Pages.Activities
                     e.CompanyId == companyId &&
                     e.IsCurrent &&
                     !e.Contact.IsMerged &&
+                    e.Contact.IsActive &&
                     !e.Company.IsMerged)
                 .Select(e => e.Contact)
                 .Distinct()
@@ -137,6 +153,7 @@ namespace PartnerCRM.Pages.Activities
                 .Where(e =>
                     e.IsCurrent &&
                     !e.Contact.IsMerged &&
+                    e.Contact.IsActive &&
                     !e.Company.IsMerged)
                 .Select(e => new
                 {
@@ -160,6 +177,16 @@ namespace PartnerCRM.Pages.Activities
                 "Id",
                 "Name",
                 Activity.ContactId);
+            // Marketingové kampaně
+            var campaigns = await _context.MarketingCampaigns
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+
+            MarketingCampaignsList = new SelectList(
+                campaigns,
+                "Id",
+                "Name",
+                Activity.MarketingCampaignId);
         }
     }
 }

@@ -16,7 +16,7 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body p-4">
 
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
 
             <div asp-validation-summary="ModelOnly"
                  class="text-danger mb-3">
@@ -151,12 +151,37 @@
                            class="form-control"
                            placeholder="+420 123 456 789" />
                 </div>
+                <div class="col-12 mb-3">
+                    <label asp-for="Contact.Notes"
+                           class="form-label">
+                        Poznámka
+                    </label>
+                    <textarea asp-for="Contact.Notes"
+                              class="form-control"
+                              rows="4"
+                              placeholder="Poznámky ke kontaktu..."></textarea>
+                    <span asp-validation-for="Contact.Notes"
+                          class="text-danger">
+                    </span>
+                </div>
+                <div class="col-12 mb-3">
+                    <label asp-for="ContactPhoto" class="form-label">
+                        Fotografie kontaktu
+                    </label>
+                    <input asp-for="ContactPhoto"
+                           type="file"
+                           class="form-control"
+                           accept="image/jpeg,image/png,image/webp" />
+                    <div class="form-text">
+                        Povolené formáty: JPG, PNG, WEBP.
+                    </div>
+                </div>
 
                 <div class="col-12 mb-3">
                     <div class="form-check">
-                        <input asp-for="Contact.IsPrimary"
+                        <input asp-for="IsPrimary"
                                class="form-check-input" />
-                        <label asp-for="Contact.IsPrimary"
+                        <label asp-for="IsPrimary"
                                class="form-check-label">
                             Hlavní kontaktní osoba firmy
                         </label>

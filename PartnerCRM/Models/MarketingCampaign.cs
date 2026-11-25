@@ -29,5 +29,7 @@ namespace PartnerCRM.Models
 
         public ICollection<MarketingRecipient> Recipients { get; set; }
             = new List<MarketingRecipient>();
+        public ICollection<Activity> Activities { get; set; }
+    = new List<Activity>();
     }
 }

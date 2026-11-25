@@ -3,21 +3,18 @@
 @model PartnerCRM.Pages.Contacts.DeleteModel
 
 @{
-    ViewData["Title"] = "Smazání kontaktu";
+    ViewData["Title"] = "Zneplatnění kontaktu";
 }
 
 <div class="mb-4">
-    <h2 class="mb-1">Smazání kontaktu</h2>
+    <h2 class="mb-1">Zneplatnění kontaktu</h2>
     <p class="text-muted mb-0">
-        Informace o kontaktní osobě a její historii.
+        Kontakt bude označen jako neaktivní. Jeho historie zůstane zachována.
     </p>
 </div>
 
 <div class="card border-0 shadow-sm">
     <div class="card-body p-4">
-
-        <div asp-validation-summary="All"
-             class="alert alert-danger"></div>
 
         <dl class="row mb-4">
 
@@ -28,7 +25,7 @@
 
             <dt class="col-sm-3">Firma</dt>
             <dd class="col-sm-9">
-                @Model.Contact.Company.Name
+                @Model.Contact.Company?.Name
             </dd>
 
             <dt class="col-sm-3">Pozice</dt>
@@ -83,30 +80,16 @@
 
         </div>
 
-        @if (Model.HasHistory)
-        {
-            <div class="alert alert-warning">
-                <strong>Kontakt nelze smazat.</strong>
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Opravdu chcete zneplatnit tento kontakt?</strong>
 
-                Má evidovaná působení ve firmách, aktivity
-                nebo úkoly. Jeho smazáním bychom narušili
-                historii CRM.
-
-                <hr />
-
-                Doporučujeme kontakt ponechat v databázi
-                nebo jej sloučit s jiným kontaktem.
-            </div>
-        }
-        else
-        {
-            <div class="alert alert-danger">
-                <i class="bi bi-exclamation-triangle"></i>
-                Kontakt nemá evidovanou historii.
-                Opravdu jej chcete trvale odstranit?
-                Tuto operaci nelze vrátit zpět.
-            </div>
-        }
+            <p class="mb-0 mt-2">
+                Kontakt nebude odstraněn z databáze. Zachováme jeho
+                osobní údaje, fotografii, poznámky, působení ve firmách,
+                aktivity i úkoly. Kontakt bude pouze označen jako neaktivní.
+            </p>
+        </div>
 
         <form method="post">
 
@@ -117,14 +100,11 @@
                     Zpět
                 </a>
 
-                @if (!Model.HasHistory)
-                {
-                    <button type="submit"
-                            class="btn btn-danger">
-                        <i class="bi bi-trash"></i>
-                        Ano, smazat kontakt
-                    </button>
-                }
+                <button type="submit"
+                        class="btn btn-warning">
+                    <i class="bi bi-person-x"></i>
+                    Zneplatnit kontakt
+                </button>
 
             </div>
 

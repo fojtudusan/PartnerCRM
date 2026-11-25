@@ -1,0 +1,105 @@
+﻿
+@page
+@model PartnerCRM.Pages.Admin.Users.InviteModel
+
+@{
+    ViewData["Title"] = "Pozvat uživatele";
+}
+
+@if (!string.IsNullOrEmpty(Model.InvitationUrl))
+{
+    <div class="alert alert-success">
+        <h5>Pozvánka byla vytvořena.</h5>
+        <p>Platnost pozvánky je 7 dní.</p>
+
+        <label class="form-label">Odkaz pro nového uživatele:</label>
+
+        <div class="input-group">
+            <input id="invitationUrl"
+                   class="form-control"
+                   value="@Model.InvitationUrl"
+                   readonly />
+
+            <button type="button"
+                    class="btn btn-outline-success"
+                    onclick="copyInvitationUrl()">
+                <i class="bi bi-clipboard"></i>
+                Zkopírovat
+            </button>
+        </div>
+
+        <small id="copyMessage" class="text-success"></small>
+    </div>
+}
+
+<h2 class="mb-4">Pozvat nového uživatele</h2>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="post">
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">
+                    E-mailová adresa
+                </label>
+
+                <input asp-for="Email"
+                       class="form-control"
+                       type="email" />
+
+                <span asp-validation-for="Email"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Role" class="form-label">
+                    Role uživatele
+                </label>
+
+                <select asp-for="Role" class="form-select">
+                    <option value="Uživatel – čtení a zápis">
+                        Čtení a zápis
+                    </option>
+
+                    <option value="Uživatel – pouze čtení">
+                        Pouze čtení
+                    </option>
+                </select>
+
+                <span asp-validation-for="Role"
+                      class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                Vytvořit pozvánku
+            </button>
+
+            <a asp-page="/Admin/Users/Index"
+               class="btn btn-secondary ms-2">
+                Zpět
+            </a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function copyInvitationUrl() {
+            const input = document.getElementById("invitationUrl");
+
+            navigator.clipboard.writeText(input.value)
+                .then(() => {
+                    document.getElementById("copyMessage").textContent =
+                        "Odkaz byl zkopírován.";
+                })
+                .catch(() => {
+                    input.select();
+                    document.execCommand("copy");
+
+                    document.getElementById("copyMessage").textContent =
+                        "Odkaz byl zkopírován.";
+                });
+        }
+    </script>
+}

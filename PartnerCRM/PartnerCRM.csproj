@@ -4,9 +4,12 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>996ba866-793c-486c-ad29-75302c7573a6</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.0">
       <PrivateAssets>all</PrivateAssets>
@@ -17,9 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="PartnerCRM.db">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <Folder Include="Migrations\" />
   </ItemGroup>
 
 </Project>

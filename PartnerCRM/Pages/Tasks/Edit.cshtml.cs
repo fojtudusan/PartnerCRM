@@ -65,6 +65,7 @@ namespace PartnerCRM.Pages.Tasks
                         e.ContactId == TaskItem.ContactId.Value &&
                         e.IsCurrent &&
                         !e.Contact.IsMerged &&
+                        e.Contact.IsActive &&
                         !e.Company.IsMerged)
                     .ToListAsync();
 
@@ -147,6 +148,7 @@ namespace PartnerCRM.Pages.Tasks
                 .Where(e =>
                     e.IsCurrent &&
                     !e.Contact.IsMerged &&
+                    e.Contact.IsActive &&
                     !e.Company.IsMerged);
 
             if (TaskItem.CompanyId.HasValue)
@@ -181,6 +183,7 @@ namespace PartnerCRM.Pages.Tasks
                     e.CompanyId == companyId &&
                     e.IsCurrent &&
                     !e.Contact.IsMerged &&
+                    e.Contact.IsActive &&
                     !e.Company.IsMerged)
                 .Select(e => e.Contact)
                 .Distinct()

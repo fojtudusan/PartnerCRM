@@ -8,6 +8,7 @@
 
 <div class="container-fluid">
 
+    <!-- Hlavička -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2>@Model.Campaign.Name</h2>
@@ -17,6 +18,7 @@
         </div>
 
         <div class="d-flex gap-2">
+
             @if (Model.Campaign.EmailTemplate != null &&
                  Model.Campaign.Recipients.Any())
             {
@@ -26,24 +28,28 @@
                     <i class="bi bi-eye"></i>
                     Náhled e-mailu
                 </a>
+
                 @if (Model.Campaign.Status == "Příprava")
-                    {
-                        <a asp-page="/Marketing/Check"
-                           asp-route-id="@Model.Campaign.Id"
-                           class="btn btn-outline-success">
-                            <i class="bi bi-clipboard-check"></i>
-                            Zkontrolovat kampaň
-                        </a>
-                    }
+                {
+                    <a asp-page="/Marketing/Check"
+                       asp-route-id="@Model.Campaign.Id"
+                       class="btn btn-outline-success">
+                        <i class="bi bi-clipboard-check"></i>
+                        Zkontrolovat kampaň
+                    </a>
+                }
             }
 
-            <a asp-page="/Marketing/Index" class="btn btn-outline-secondary">
+            <a asp-page="/Marketing/Index"
+               class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left"></i>
                 Zpět na marketingové akce
             </a>
+
         </div>
     </div>
 
+    <!-- Zprávy -->
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show">
@@ -64,11 +70,13 @@
 
     <!-- Základní informace -->
     <div class="card mb-4">
+
         <div class="card-header">
             <strong>Základní informace</strong>
         </div>
 
         <div class="card-body">
+
             <div class="row g-3">
 
                 <div class="col-md-4">
@@ -85,13 +93,22 @@
 
                 <div class="col-md-4">
                     <div class="text-muted small">Stav</div>
+
                     @if (Model.Campaign.Status == "Příprava")
                     {
                         <span class="badge bg-secondary">Příprava</span>
                     }
+                    else if (Model.Campaign.Status == "Připraveno k odeslání")
+                    {
+                        <span class="badge bg-primary">
+                            Připraveno k odeslání
+                        </span>
+                    }
                     else
                     {
-                        <span class="badge bg-info">@Model.Campaign.Status</span>
+                        <span class="badge bg-info">
+                            @Model.Campaign.Status
+                        </span>
                     }
                 </div>
 
@@ -104,18 +121,83 @@
                 }
 
             </div>
+
         </div>
     </div>
+
+    <!-- Simulace odeslání -->
+    @if (Model.Campaign.Status == "Připraveno k odeslání")
+    {
+        <div class="card border-primary mb-4">
+
+            <div class="card-header bg-primary text-white">
+                <strong>
+                    <i class="bi bi-send"></i>
+                    Odeslání marketingové akce
+                </strong>
+            </div>
+
+            <div class="card-body">
+
+                <p>
+                    Kampaň je připravena k odeslání.
+                    Následující operace pouze simuluje odeslání –
+                    žádné skutečné e-maily nebudou odeslány.
+                </p>
+
+                <p class="text-muted">
+                    Všichni dosud neodeslaní příjemci budou označeni jako
+                    úspěšně odeslaní. Příjemci, kteří již mají stav
+                    <strong>Odesláno</strong>, zůstanou beze změny.
+                </p>
+
+                <div class="d-flex gap-2 flex-wrap">
+
+                    <form method="post"
+                          asp-page-handler="SimulateSend"
+                          onsubmit="return confirm('Opravdu chcete spustit simulaci odeslání? Všichni dosud neodeslaní příjemci budou označeni jako Odesláno. Žádné skutečné e-maily nebudou odeslány.');">
+
+                        <input type="hidden" name="id"
+                               value="@Model.Campaign.Id" />
+
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-send-check"></i>
+                            Simulovat odeslání
+                        </button>
+
+                    </form>
+
+                    <form method="post"
+                          asp-page-handler="ReturnToPreparation"
+                          onsubmit="return confirm('Opravdu chcete vrátit kampaň do přípravy?');">
+
+                        <input type="hidden" name="id"
+                               value="@Model.Campaign.Id" />
+
+                        <button type="submit" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            Vrátit do přípravy
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+        </div>
+    }
 
     @if (Model.Campaign.Status == "Příprava")
     {
         <!-- Úprava marketingové akce -->
         <div class="card mb-4">
+
             <div class="card-header">
                 <strong>Upravit marketingovou akci</strong>
             </div>
 
             <div class="card-body">
+
                 <form method="post" asp-page-handler="EditCampaign">
 
                     <input type="hidden" name="id"
@@ -169,33 +251,46 @@
                         </div>
 
                     </div>
+
                 </form>
+
             </div>
         </div>
 
-        <!-- Výběr příjemce -->
+        <!-- Hromadný výběr příjemců -->
         <div class="card mb-4">
+
             <div class="card-header">
-                <strong>Přidat příjemce</strong>
+                <strong>Výběr příjemců</strong>
             </div>
 
             <div class="card-body">
 
-                <form method="post" asp-page-handler="AddRecipient">
+                <form method="post"
+                      asp-page-handler="AddRecipients"
+                      id="recipientsForm">
 
                     <input type="hidden" name="id"
                            value="@Model.Campaign.Id" />
 
-                    <div class="row g-3">
+                    <!-- Filtry -->
+                    <div class="row g-3 mb-3">
 
-                        <div class="col-md-5">
-                            <label class="form-label">Firma</label>
+                        <div class="col-md-6">
+                            <label class="form-label">Vyhledávání</label>
+                            <input type="text"
+                                   id="recipientSearch"
+                                   class="form-control"
+                                   placeholder="Firma, jméno nebo e-mail..." />
+                        </div>
 
-                            <select id="companySelect"
-                                    name="companyId"
-                                    class="form-select"
-                                    required>
-                                <option value="">-- Vyberte firmu --</option>
+                        <div class="col-md-4">
+                            <label class="form-label">Filtrovat podle firmy</label>
+
+                            <select id="recipientCompanyFilter"
+                                    class="form-select">
+
+                                <option value="">Všechny firmy</option>
 
                                 @foreach (var company in Model.Companies)
                                 {
@@ -203,60 +298,152 @@
                                         @company.Name
                                     </option>
                                 }
-                            </select>
-                        </div>
 
-                        <div class="col-md-5">
-                            <label class="form-label">Kontakt</label>
-
-                            <select id="contactSelect"
-                                    name="contactId"
-                                    class="form-select"
-                                    required
-                                    disabled>
-                                <option value="">-- Nejprve vyberte firmu --</option>
-
-                                @foreach (var employment in Model.CurrentEmployments)
-                                {
-                                    <option value="@employment.ContactId"
-                                            data-company-id="@employment.CompanyId">
-                                        @employment.Contact.FirstName
-                                        @employment.Contact.LastName
-                                        (@employment.Contact.Email)
-                                    </option>
-                                }
                             </select>
                         </div>
 
                         <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit"
-                                    class="btn btn-primary w-100"
-                                    id="addRecipientButton"
-                                    disabled>
-                                <i class="bi bi-plus-circle"></i>
-                                Přidat
+                            <button type="button"
+                                    id="clearRecipientFilters"
+                                    class="btn btn-outline-secondary w-100">
+                                Vymazat filtr
                             </button>
                         </div>
 
                     </div>
 
-                    <small class="text-muted d-block mt-2">
-                        Nejprve vyberte firmu. Následně se zobrazí její aktuální kontakty s e-mailovou adresou.
-                    </small>
+                    <!-- Označení všech -->
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+
+                        <div>
+                            <input type="checkbox"
+                                   class="form-check-input me-2"
+                                   id="selectAllRecipients" />
+
+                            <label for="selectAllRecipients">
+                                Označit všechny zobrazené
+                            </label>
+                        </div>
+
+                        <span class="text-muted small"
+                              id="recipientCount">
+                        </span>
+
+                    </div>
+
+                    <!-- Tabulka kontaktů -->
+                    <div class="table-responsive">
+
+                        <table class="table table-hover align-middle">
+
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px">Výběr</th>
+                                    <th>Firma</th>
+                                    <th>Kontakt</th>
+                                    <th>E-mail</th>
+                                    <th>Stav</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="recipientTableBody">
+
+                                @foreach (var employment in Model.CurrentEmployments)
+                                {
+                                    bool alreadyAdded =
+                                        Model.Campaign.Recipients.Any(r =>
+                                            (r.CompanyId == employment.CompanyId &&
+                                             r.ContactId == employment.ContactId)
+                                            ||
+                                            string.Equals(
+                                                r.EmailAddress?.Trim(),
+                                                employment.Contact.Email?.Trim(),
+                                                StringComparison.OrdinalIgnoreCase));
+
+                                    <tr class="recipient-row"
+                                        data-company-id="@employment.CompanyId"
+                                        data-search="@($"{employment.Company.Name} {employment.Contact.FirstName} {employment.Contact.LastName} {employment.Contact.Email}".ToLowerInvariant())">
+
+                                        <td>
+                                            <input type="checkbox"
+                                                   class="form-check-input recipient-checkbox"
+                                                   name="SelectedEmploymentIds"
+                                                   value="@employment.Id"
+                                                   disabled="@alreadyAdded" />
+                                        </td>
+
+                                        <td>
+                                            @employment.Company.Name
+                                        </td>
+
+                                        <td>
+                                            @employment.Contact.FirstName
+                                            @employment.Contact.LastName
+                                        </td>
+
+                                        <td>
+                                            @employment.Contact.Email
+                                        </td>
+
+                                        <td>
+                                            @if (alreadyAdded)
+                                            {
+                                                <span class="badge bg-secondary">
+                                                    Již přidán
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">
+                                                    Lze přidat
+                                                </span>
+                                            }
+                                        </td>
+
+                                    </tr>
+                                }
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    <!-- Akce -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+
+                        <small class="text-muted">
+                            Vyberte kontakty, které chcete přidat do marketingové akce.
+                        </small>
+
+                        <button type="submit"
+                                class="btn btn-primary"
+                                id="addSelectedRecipients">
+
+                            <i class="bi bi-plus-circle"></i>
+                            Přidat vybrané kontakty
+
+                        </button>
+
+                    </div>
 
                 </form>
+
             </div>
         </div>
     }
 
-    <!-- Seznam příjemců -->
+    <!-- Seznam příjemců kampaně -->
     <div class="card">
+
         <div class="card-header d-flex justify-content-between align-items-center">
+
             <strong>Seznam příjemců</strong>
 
             <span class="badge bg-primary">
                 @Model.Campaign.Recipients.Count příjemců
             </span>
+
         </div>
 
         <div class="card-body">
@@ -264,6 +451,7 @@
             @if (Model.Campaign.Recipients.Any())
             {
                 <div class="table-responsive">
+
                     <table class="table table-hover align-middle">
 
                         <thead>
@@ -281,21 +469,28 @@
                         </thead>
 
                         <tbody>
+
                             @foreach (var recipient in Model.Campaign.Recipients
                                 .OrderBy(r => r.Company.Name)
                                 .ThenBy(r => r.Contact.LastName))
                             {
                                 <tr>
-                                    <td>@recipient.Company.Name</td>
+
+                                    <td>
+                                        @recipient.Company.Name
+                                    </td>
 
                                     <td>
                                         @recipient.Contact.FirstName
                                         @recipient.Contact.LastName
                                     </td>
 
-                                    <td>@recipient.EmailAddress</td>
+                                    <td>
+                                        @recipient.EmailAddress
+                                    </td>
 
                                     <td>
+
                                         @if (recipient.Status == "Připraveno")
                                         {
                                             <span class="badge bg-secondary">
@@ -305,6 +500,7 @@
                                         else if (recipient.Status == "Odesláno")
                                         {
                                             <span class="badge bg-success">
+                                                <i class="bi bi-check-circle"></i>
                                                 Odesláno
                                             </span>
                                         }
@@ -314,35 +510,54 @@
                                                 @recipient.Status
                                             </span>
                                         }
+
                                     </td>
 
                                     @if (Model.Campaign.Status == "Příprava")
                                     {
                                         <td class="text-end">
-                                            <form method="post"
-                                                  asp-page-handler="RemoveRecipient"
-                                                  class="d-inline">
 
-                                                <input type="hidden" name="id"
-                                                       value="@Model.Campaign.Id" />
+                                            @if (recipient.Status == "Odesláno")
+                                            {
+                                                <span class="text-muted small">
+                                                    <i class="bi bi-lock"></i>
+                                                    Historie zachována
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <form method="post"
+                                                      asp-page-handler="RemoveRecipient"
+                                                      class="d-inline">
 
-                                                <input type="hidden" name="recipientId"
-                                                       value="@recipient.Id" />
+                                                    <input type="hidden" name="id"
+                                                           value="@Model.Campaign.Id" />
 
-                                                <button type="submit"
-                                                        class="btn btn-sm btn-outline-danger"
-                                                        onclick="return confirm('Opravdu odebrat tohoto příjemce?');">
-                                                    <i class="bi bi-trash"></i>
-                                                    Odebrat
-                                                </button>
-                                            </form>
+                                                    <input type="hidden" name="recipientId"
+                                                           value="@recipient.Id" />
+
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-outline-danger"
+                                                            onclick="return confirm('Opravdu odebrat tohoto příjemce?');">
+
+                                                        <i class="bi bi-trash"></i>
+                                                        Odebrat
+
+                                                    </button>
+
+                                                </form>
+                                            }
+
                                         </td>
                                     }
+
                                 </tr>
                             }
+
                         </tbody>
 
                     </table>
+
                 </div>
             }
             else
@@ -358,61 +573,166 @@
 </div>
 
 @section Scripts {
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
-            const companySelect = document.getElementById("companySelect");
-            const contactSelect = document.getElementById("contactSelect");
-            const addButton = document.getElementById("addRecipientButton");
+            const searchInput =
+                document.getElementById("recipientSearch");
 
-            if (!companySelect || !contactSelect || !addButton)
+            const companyFilter =
+                document.getElementById("recipientCompanyFilter");
+
+            const selectAll =
+                document.getElementById("selectAllRecipients");
+
+            const clearFilters =
+                document.getElementById("clearRecipientFilters");
+
+            const recipientCount =
+                document.getElementById("recipientCount");
+
+            const rows =
+                Array.from(document.querySelectorAll(".recipient-row"));
+
+            // Pokud stránka není v režimu Příprava,
+            // tabulka pro výběr příjemců není zobrazena.
+            if (!searchInput || !companyFilter ||
+                !selectAll || !clearFilters || !recipientCount) {
                 return;
-
-            const contactOptions = Array.from(contactSelect.options)
-                .slice(1);
-
-            function updateContacts() {
-
-                const companyId = companySelect.value;
-
-                contactSelect.innerHTML = "";
-
-                const placeholder = document.createElement("option");
-                placeholder.value = "";
-                placeholder.textContent = companyId
-                    ? "-- Vyberte kontakt --"
-                    : "-- Nejprve vyberte firmu --";
-
-                contactSelect.appendChild(placeholder);
-
-                let count = 0;
-
-                contactOptions.forEach(function (option) {
-
-                    if (option.dataset.companyId === companyId && companyId) {
-
-                        const newOption = option.cloneNode(true);
-                        contactSelect.appendChild(newOption);
-                        count++;
-                    }
-                });
-
-                contactSelect.disabled = !companyId || count === 0;
-
-                if (companyId && count === 0) {
-                    placeholder.textContent =
-                        "-- Firma nemá kontakty s e-mailem --";
-                }
-
-                addButton.disabled = true;
             }
 
-            companySelect.addEventListener("change", updateContacts);
+            function updateSelectAllState() {
 
-            contactSelect.addEventListener("change", function () {
-                addButton.disabled = !contactSelect.value;
+                const visibleCheckboxes = rows
+                    .filter(row => row.style.display !== "none")
+                    .map(row => row.querySelector(".recipient-checkbox"))
+                    .filter(cb => cb && !cb.disabled);
+
+                const checkedCount =
+                    visibleCheckboxes.filter(cb => cb.checked).length;
+
+                selectAll.checked =
+                    visibleCheckboxes.length > 0 &&
+                    checkedCount === visibleCheckboxes.length;
+
+                selectAll.indeterminate =
+                    checkedCount > 0 &&
+                    checkedCount < visibleCheckboxes.length;
+            }
+
+            function updateTable() {
+
+                const search =
+                    searchInput.value.toLowerCase().trim();
+
+                const companyId =
+                    companyFilter.value;
+
+                let visibleCount = 0;
+
+                rows.forEach(function (row) {
+
+                    const matchesSearch =
+                        row.dataset.search.includes(search);
+
+                    const matchesCompany =
+                        !companyId ||
+                        row.dataset.companyId === companyId;
+
+                    const visible =
+                        matchesSearch && matchesCompany;
+
+                    row.style.display = visible ? "" : "none";
+
+                    if (visible)
+                        visibleCount++;
+
+                });
+
+                recipientCount.textContent =
+                    "Zobrazeno " + visibleCount + " kontaktů";
+
+                updateSelectAllState();
+            }
+
+            searchInput.addEventListener("input", updateTable);
+
+            companyFilter.addEventListener("change", updateTable);
+
+            clearFilters.addEventListener("click", function () {
+
+                searchInput.value = "";
+                companyFilter.value = "";
+
+                updateTable();
+
             });
+
+            selectAll.addEventListener("change", function () {
+
+                rows.forEach(function (row) {
+
+                    if (row.style.display === "none")
+                        return;
+
+                    const checkbox =
+                        row.querySelector(".recipient-checkbox");
+
+                    if (checkbox && !checkbox.disabled)
+                        checkbox.checked = selectAll.checked;
+
+                });
+
+                updateSelectAllState();
+
+            });
+
+            document.querySelectorAll(".recipient-checkbox")
+                .forEach(function (checkbox) {
+
+                    checkbox.addEventListener(
+                        "change",
+                        updateSelectAllState
+                    );
+
+                });
+
+            updateTable();
+
+            const recipientsForm =
+                document.getElementById("recipientsForm");
+
+            if (recipientsForm) {
+
+                recipientsForm.addEventListener("submit", function (event) {
+
+                    const selected = document.querySelectorAll(
+                        ".recipient-checkbox:checked"
+                    ).length;
+
+                    if (selected === 0) {
+
+                        event.preventDefault();
+
+                        alert("Nejdříve vyberte alespoň jeden kontakt.");
+
+                        return;
+                    }
+
+                    if (!confirm(
+                        "Opravdu chcete přidat " +
+                        selected +
+                        " vybraných kontaktů?"
+                    )) {
+                        event.preventDefault();
+                    }
+
+                });
+
+            }
 
         });
     </script>
+
 }

@@ -30,6 +30,9 @@ namespace PartnerCRM.Pages.Companies
         [BindProperty]
         public DateTime DateFrom { get; set; } = DateTime.Today;
 
+        [BindProperty]
+        public bool IsPrimary { get; set; }
+
         public async Task<IActionResult> OnGetAsync(int id)
         {
             if (!await LoadDataAsync(id))
@@ -51,13 +54,14 @@ namespace PartnerCRM.Pages.Companies
             var contactExists = await _context.Contacts
                 .AnyAsync(c =>
                     c.Id == ContactId &&
-                    !c.IsMerged);
+                    !c.IsMerged &&
+                    c.IsActive);
 
             if (!contactExists)
             {
                 ModelState.AddModelError(
                     nameof(ContactId),
-                    "Vyberte platný existující kontakt.");
+                    "Vyberte platný aktivní kontakt.");
             }
 
             var alreadyExists = await _context.ContactEmployments
@@ -88,18 +92,47 @@ namespace PartnerCRM.Pages.Companies
                 return Page();
             }
 
-            var employment = new ContactEmployment
+            await using var transaction =
+                await _context.Database.BeginTransactionAsync();
+
+            try
             {
-                ContactId = ContactId,
-                CompanyId = id,
-                Position = Position?.Trim(),
-                DateFrom = DateFrom,
-                IsCurrent = true
-            };
+                if (IsPrimary)
+                {
+                    var previousPrimary = await _context.ContactEmployments
+                        .Where(e =>
+                            e.CompanyId == id &&
+                            e.IsCurrent &&
+                            e.IsPrimary)
+                        .ToListAsync();
 
-            _context.ContactEmployments.Add(employment);
+                    foreach (var previous in previousPrimary)
+                    {
+                        previous.IsPrimary = false;
+                    }
+                }
 
-            await _context.SaveChangesAsync();
+                var employment = new ContactEmployment
+                {
+                    ContactId = ContactId,
+                    CompanyId = id,
+                    Position = Position?.Trim(),
+                    DateFrom = DateFrom,
+                    IsCurrent = true,
+                    IsPrimary = IsPrimary
+                };
+
+                _context.ContactEmployments.Add(employment);
+
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
 
             TempData["SuccessMessage"] =
                 "Existující kontakt byl úspěšně přidán k firmě.";
@@ -120,7 +153,7 @@ namespace PartnerCRM.Pages.Companies
             Company = company;
 
             var contacts = await _context.Contacts
-                .Where(c => !c.IsMerged)
+                .Where(c => !c.IsMerged && c.IsActive)
                 .OrderBy(c => c.LastName)
                 .ThenBy(c => c.FirstName)
                 .ToListAsync();

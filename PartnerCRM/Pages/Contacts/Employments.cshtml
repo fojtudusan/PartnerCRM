@@ -22,6 +22,15 @@
     </a>
 </div>
 
+@if (!Model.Contact.IsActive)
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-person-x"></i>
+        <strong>Neaktivní kontakt.</strong>
+        Nová působení již nelze přidávat ani měnit. Historie působení zůstává dostupná.
+    </div>
+}
+
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show">
@@ -33,76 +42,90 @@
     </div>
 }
 
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body p-4">
+@if (Model.Contact.IsActive)
+{
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
 
-        <h5 class="mb-3">
-            <i class="bi bi-plus-circle"></i>
-            Přidat působení v další firmě
-        </h5>
+            <h5 class="mb-3">
+                <i class="bi bi-plus-circle"></i>
+                Přidat působení v další firmě
+            </h5>
 
-        <form method="post" asp-page-handler="Add">
+            <form method="post" asp-page-handler="Add">
 
-            <div asp-validation-summary="All"
-                 class="text-danger mb-3"></div>
+                <div asp-validation-summary="All"
+                     class="text-danger mb-3"></div>
 
-            <div class="row">
+                <div class="row">
 
-                <div class="col-md-5 mb-3">
-                    <label asp-for="CompanyId"
-                           class="form-label">
-                        Firma *
-                    </label>
+                    <div class="col-md-5 mb-3">
+                        <label asp-for="CompanyId"
+                               class="form-label">
+                            Firma *
+                        </label>
 
-                    <select asp-for="CompanyId"
-                            asp-items="Model.CompaniesList"
-                            class="form-select">
-                        <option value="">-- Vyberte firmu --</option>
-                    </select>
+                        <select asp-for="CompanyId"
+                                asp-items="Model.CompaniesList"
+                                class="form-select">
+                            <option value="">-- Vyberte firmu --</option>
+                        </select>
 
-                    <span asp-validation-for="CompanyId"
-                          class="text-danger"></span>
+                        <span asp-validation-for="CompanyId"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Position"
+                               class="form-label">
+                            Pracovní pozice
+                        </label>
+
+                        <input asp-for="Position"
+                               class="form-control"
+                               placeholder="Např. obchodní ředitel" />
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label asp-for="DateFrom"
+                               class="form-label">
+                            Začátek působení *
+                        </label>
+
+                        <input asp-for="DateFrom"
+                               type="date"
+                               class="form-control" />
+
+                        <span asp-validation-for="DateFrom"
+                              class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12 mb-3">
+                        <div class="form-check">
+                            <input asp-for="IsPrimary"
+                                   class="form-check-input" />
+                            <label asp-for="IsPrimary"
+                                   class="form-check-label">
+                                Hlavní kontaktní osoba této firmy
+                            </label>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div class="col-md-4 mb-3">
-                    <label asp-for="Position"
-                           class="form-label">
-                        Pracovní pozice
-                    </label>
-
-                    <input asp-for="Position"
-                           class="form-control"
-                           placeholder="Např. obchodní ředitel" />
+                <div class="d-flex justify-content-end">
+                    <button type="submit"
+                            class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i>
+                        Přidat působení
+                    </button>
                 </div>
 
-                <div class="col-md-3 mb-3">
-                    <label asp-for="DateFrom"
-                           class="form-label">
-                        Začátek působení *
-                    </label>
+            </form>
 
-                    <input asp-for="DateFrom"
-                           type="date"
-                           class="form-control" />
-
-                    <span asp-validation-for="DateFrom"
-                          class="text-danger"></span>
-                </div>
-
-            </div>
-
-            <div class="d-flex justify-content-end">
-                <button type="submit"
-                        class="btn btn-primary">
-                    <i class="bi bi-plus-lg"></i>
-                    Přidat působení
-                </button>
-            </div>
-
-        </form>
-
+        </div>
     </div>
-</div>
+}
 
 <div class="card border-0 shadow-sm">
     <div class="card-body">
@@ -119,6 +142,7 @@
                         <th>Od</th>
                         <th>Do</th>
                         <th>Stav</th>
+                        <th>Hlavní kontakt</th>
                         <th class="text-end">Akce</th>
                     </tr>
                 </thead>
@@ -160,8 +184,20 @@
                                     }
                                 </td>
 
+                                <td>
+                                    @if (employment.IsPrimary)
+                                    {
+                                        <i class="bi bi-check-circle-fill text-success"
+                                           title="Hlavní kontakt"></i>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">–</span>
+                                    }
+                                </td>
+
                                 <td class="text-end">
-                                    @if (employment.IsCurrent)
+                                    @if (employment.IsCurrent && Model.Contact.IsActive)
                                     {
                                         <form method="post"
                                               asp-page-handler="End"
@@ -184,7 +220,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="6"
+                            <td colspan="7"
                                 class="text-center text-muted py-4">
                                 Zatím není evidováno žádné působení.
                             </td>

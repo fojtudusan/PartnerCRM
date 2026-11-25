@@ -123,8 +123,12 @@
                                 </span>
                             </td>
 
-                            <td>
-                                <strong>@activity.Subject</strong>
+                             <td>
+                                <a asp-page="./Details"
+                                    asp-route-id="@activity.Id"
+                                    class="text-decoration-none fw-semibold">
+                                    @activity.Subject
+                                </a>
                             </td>
 
                             <td>@activity.Company.Name</td>

@@ -22,6 +22,7 @@ namespace PartnerCRM.Models
         public DateTime? DateTo { get; set; }
 
         public bool IsCurrent { get; set; } = true;
+        public bool IsPrimary { get; set; } = false;
 
         [StringLength(1000)]
         public string? Notes { get; set; }

@@ -11,17 +11,34 @@ namespace PartnerCRM.Pages.Contacts
     public class EditModel : PageModel
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _environment;
 
-        public EditModel(ApplicationDbContext context)
+        public EditModel(
+            ApplicationDbContext context,
+            IWebHostEnvironment environment)
         {
             _context = context;
+            _environment = environment;
         }
 
         [BindProperty]
         public Contact Contact { get; set; } = new();
 
         [BindProperty]
+        public IFormFile? ContactPhoto { get; set; }
+
+        [BindProperty]
+        public bool RemovePhoto { get; set; }
+
+        [BindProperty]
+        public bool IsPrimary { get; set; }
+
+        [BindProperty]
         public bool ConfirmEmailDuplicate { get; set; }
+
+        public string? CurrentPhotoPath { get; set; }
+
+        public SelectList CompaniesList { get; set; } = null!;
 
         public bool EmailDuplicateWarning { get; set; }
 
@@ -37,7 +54,9 @@ namespace PartnerCRM.Pages.Contacts
             public string CompanyName { get; set; } = "";
         }
 
-        public SelectList CompaniesList { get; set; } = null!;
+        // =====================================
+        // NAČTENÍ KONTAKTU
+        // =====================================
 
         public async Task<IActionResult> OnGetAsync(int id)
         {
@@ -47,16 +66,33 @@ namespace PartnerCRM.Pages.Contacts
                     !c.IsMerged);
 
             if (contact == null)
-            {
                 return NotFound();
-            }
 
             Contact = contact;
+
+            var currentEmployment = await _context.ContactEmployments
+                .Where(e =>
+                    e.ContactId == id &&
+                    e.IsCurrent)
+                .OrderByDescending(e => e.DateFrom)
+                .FirstOrDefaultAsync();
+
+            if (currentEmployment != null)
+            {
+                Contact.CompanyId = currentEmployment.CompanyId;
+                IsPrimary = currentEmployment.IsPrimary;
+            }
+
+            CurrentPhotoPath = Contact.PhotoPath;
 
             await LoadCompaniesAsync();
 
             return Page();
         }
+
+        // =====================================
+        // ULOŽENÍ ZMĚN
+        // =====================================
 
         public async Task<IActionResult> OnPostAsync()
         {
@@ -65,11 +101,8 @@ namespace PartnerCRM.Pages.Contacts
                     c.Id == Contact.Id &&
                     !c.IsMerged);
 
-            // Archivovaný nebo neexistující kontakt nelze upravit.
             if (contactToUpdate == null)
-            {
                 return NotFound();
-            }
 
             // Kontrola existence aktivní firmy
             var companyExists = await _context.Companies
@@ -111,27 +144,164 @@ namespace PartnerCRM.Pages.Contacts
                 EmailDuplicateWarning = EmailMatch != null;
             }
 
+            // Kontrola fotografie
+            if (ContactPhoto != null && ContactPhoto.Length > 0)
+            {
+                var extension = Path.GetExtension(ContactPhoto.FileName)
+                    .ToLowerInvariant();
+
+                var allowedExtensions = new[]
+                {
+                    ".jpg", ".jpeg", ".png", ".webp"
+                };
+
+                if (!allowedExtensions.Contains(extension) ||
+                    ContactPhoto.Length > 5 * 1024 * 1024)
+                {
+                    ModelState.AddModelError(
+                        nameof(ContactPhoto),
+                        "Fotografie musí být JPG, PNG nebo WEBP a maximálně 5 MB.");
+                }
+            }
+
             // Kontrola formuláře a potvrzení duplicity
             if (!ModelState.IsValid ||
                 (EmailDuplicateWarning && !ConfirmEmailDuplicate))
             {
+                CurrentPhotoPath = contactToUpdate.PhotoPath;
+
                 await LoadCompaniesAsync();
+
                 return Page();
             }
 
-            // Aktualizace existujícího kontaktu
+            // =====================================
+            // AKTUALIZACE OSOBNÍCH ÚDAJŮ
+            // =====================================
+
             contactToUpdate.FirstName = Contact.FirstName;
             contactToUpdate.LastName = Contact.LastName;
-            contactToUpdate.CompanyId = Contact.CompanyId;
-            contactToUpdate.Position = Contact.Position;
             contactToUpdate.Email = Contact.Email;
             contactToUpdate.Phone = Contact.Phone;
-            contactToUpdate.IsPrimary = Contact.IsPrimary;
+            contactToUpdate.Position = Contact.Position;
+            contactToUpdate.Notes = Contact.Notes;
+
+            // =====================================
+            // AKTUALIZACE PŮSOBENÍ VE FIRMĚ
+            // =====================================
+
+            var currentEmployment = await _context.ContactEmployments
+                .Where(e =>
+                    e.ContactId == Contact.Id &&
+                    e.IsCurrent)
+                .OrderByDescending(e => e.DateFrom)
+                .FirstOrDefaultAsync();
+
+            if (currentEmployment == null)
+            {
+                // Kontakt zatím nemá aktivní působení.
+                // Vytvoříme nové.
+
+                var newEmployment = new ContactEmployment
+                {
+                    ContactId = contactToUpdate.Id,
+                    CompanyId = Contact.CompanyId,
+                    Position = Contact.Position,
+                    DateFrom = DateTime.Today,
+                    IsCurrent = true,
+                    IsPrimary = IsPrimary
+                };
+
+                _context.ContactEmployments.Add(newEmployment);
+            }
+            else if (currentEmployment.CompanyId != Contact.CompanyId)
+            {
+                // Změna firmy:
+                // uzavřeme původní působení.
+
+                currentEmployment.DateTo = DateTime.Today;
+                currentEmployment.IsCurrent = false;
+
+                // A založíme nové působení.
+
+                var newEmployment = new ContactEmployment
+                {
+                    ContactId = contactToUpdate.Id,
+                    CompanyId = Contact.CompanyId,
+                    Position = Contact.Position,
+                    DateFrom = DateTime.Today,
+                    IsCurrent = true,
+                    IsPrimary = IsPrimary
+                };
+
+                _context.ContactEmployments.Add(newEmployment);
+            }
+            else
+            {
+                // Stejná firma:
+                // aktualizujeme aktuální pozici a příznak.
+
+                currentEmployment.Position = Contact.Position;
+                currentEmployment.IsPrimary = IsPrimary;
+            }
+
+            // Aktuální firma kontaktu
+            contactToUpdate.CompanyId = Contact.CompanyId;
+
+            // =====================================
+            // FOTOGRAFIE
+            // =====================================
+
+            var oldPhotoPath = contactToUpdate.PhotoPath;
+
+            if (ContactPhoto != null && ContactPhoto.Length > 0)
+            {
+                var extension = Path.GetExtension(ContactPhoto.FileName)
+                    .ToLowerInvariant();
+
+                var uploadsFolder = Path.Combine(
+                    _environment.WebRootPath,
+                    "uploads",
+                    "contacts");
+
+                Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = $"{Guid.NewGuid()}{extension}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(
+                    filePath,
+                    FileMode.Create))
+                {
+                    await ContactPhoto.CopyToAsync(stream);
+                }
+
+                contactToUpdate.PhotoPath =
+                    $"/uploads/contacts/{fileName}";
+            }
+            else if (RemovePhoto)
+            {
+                contactToUpdate.PhotoPath = null;
+            }
+
+            // =====================================
+            // ULOŽENÍ DO DATABÁZE
+            // =====================================
 
             await _context.SaveChangesAsync();
 
+            // Odstraníme původní fotografii až po úspěšném uložení.
+            if (oldPhotoPath != contactToUpdate.PhotoPath)
+            {
+                DeleteOldPhoto(oldPhotoPath);
+            }
+
             return RedirectToPage("./Index");
         }
+
+        // =====================================
+        // NAČTENÍ AKTIVNÍCH FIREM
+        // =====================================
 
         private async Task LoadCompaniesAsync()
         {
@@ -145,6 +315,33 @@ namespace PartnerCRM.Pages.Contacts
                 "Id",
                 "Name",
                 Contact.CompanyId);
+        }
+
+        // =====================================
+        // ODSTRANĚNÍ STARÉ FOTOGRAFIE
+        // =====================================
+
+        private void DeleteOldPhoto(string? photoPath)
+        {
+            if (string.IsNullOrWhiteSpace(photoPath))
+                return;
+
+            if (!photoPath.StartsWith(
+                "/uploads/contacts/",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            var filePath = Path.Combine(
+                _environment.WebRootPath,
+                photoPath.TrimStart('/')
+                    .Replace('/', Path.DirectorySeparatorChar));
+
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
         }
     }
 }

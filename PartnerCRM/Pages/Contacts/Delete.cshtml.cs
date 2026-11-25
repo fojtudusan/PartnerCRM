@@ -39,6 +39,7 @@ namespace PartnerCRM.Pages.Contacts
             return Page();
         }
 
+
         public async Task<IActionResult> OnPostAsync(int id)
         {
             var result = await LoadContactAsync(id);
@@ -46,47 +47,43 @@ namespace PartnerCRM.Pages.Contacts
             if (!result)
                 return NotFound();
 
-            if (HasHistory)
+            if (!Contact.IsActive)
             {
-                ModelState.AddModelError(
-                    string.Empty,
-                    "Kontakt nelze smazat, protože má evidovaná působení ve firmách, aktivity nebo úkoly. Doporučujeme jej archivovat.");
+                TempData["SuccessMessage"] =
+                    "Kontakt již není aktivní.";
 
-                return Page();
+                return RedirectToPage("./Index");
             }
 
-            _context.Contacts.Remove(Contact);
+            // Zneaktivnění kontaktu.
+            Contact.IsActive = false;
 
-            try
+            // Ukončení všech aktuálních působení.
+            foreach (var employment in Contact.Employments
+                .Where(e => e.IsCurrent))
             {
-                await _context.SaveChangesAsync();
+                employment.IsCurrent = false;
+                employment.IsPrimary = false;
+                employment.DateTo = DateTime.Today;
             }
-            catch (DbUpdateException)
-            {
-                // Ochrana pro případ, že mezitím vznikla
-                // další vazba na tento kontakt.
-                await LoadContactAsync(id);
 
-                ModelState.AddModelError(
-                    string.Empty,
-                    "Kontakt nelze smazat, protože na něj odkazují jiné záznamy. Doporučujeme jej archivovat.");
-
-                return Page();
-            }
+            await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] =
-                "Kontakt byl úspěšně smazán.";
+                "Kontakt byl zneaktivněn a jeho aktuální působení byla ukončena. Historie zůstala zachována.";
 
             return RedirectToPage("./Index");
         }
 
+
         private async Task<bool> LoadContactAsync(int id)
         {
             var contact = await _context.Contacts
-                .Include(c => c.Company)
-                .FirstOrDefaultAsync(c =>
-                    c.Id == id &&
-                    !c.IsMerged);
+     .Include(c => c.Company)
+     .Include(c => c.Employments)
+     .FirstOrDefaultAsync(c =>
+         c.Id == id &&
+         !c.IsMerged);
 
             if (contact == null)
                 return false;

@@ -1,4 +1,5 @@
-﻿@page
+﻿
+@page
 @model PartnerCRM.Pages.Activities.CreateModel
 
 @{
@@ -17,6 +18,17 @@
 
         <form method="post">
 
+            <input type="hidden" asp-for="Activity.TaskId" />
+
+            @if (Model.Activity.TaskId.HasValue)
+            {
+                <div class="alert alert-info mb-3">
+                    <i class="bi bi-link-45deg"></i>
+                    Tato aktivita bude přiřazena k úkolu.
+                    Firma a kontaktní osoba jsou předvyplněny podle úkolu.
+                </div>
+            }
+
             <div asp-validation-summary="All"
                  class="text-danger mb-3"></div>
 
@@ -25,14 +37,33 @@
                        class="form-label">Firma *</label>
 
                 <select asp-for="Activity.CompanyId"
-                    asp-items="Model.CompaniesList"
-                    class="form-select"
-                    id="companySelect">
+                        asp-items="Model.CompaniesList"
+                        class="form-select"
+                        id="companySelect">
                     <option value="">-- Vyberte firmu --</option>
                 </select>
 
                 <span asp-validation-for="Activity.CompanyId"
                       class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Activity.ParentActivityId"
+                       class="form-label">Nadřazená aktivita</label>
+
+                <select asp-for="Activity.ParentActivityId"
+                        asp-items="Model.ParentActivitiesList"
+                        class="form-select">
+                    <option value="">-- Samostatná aktivita --</option>
+                </select>
+
+                <span asp-validation-for="Activity.ParentActivityId"
+                      class="text-danger"></span>
+
+                <small class="form-text text-muted">
+                    Pokud vyberete nadřazenou aktivitu,
+                    vznikne nová podaktivita.
+                </small>
             </div>
 
             <div class="mb-3">
@@ -47,6 +78,20 @@
                 </select>
 
                 <span asp-validation-for="Activity.ContactId"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Activity.MarketingCampaignId"
+                       class="form-label">Marketingová kampaň</label>
+
+                <select asp-for="Activity.MarketingCampaignId"
+                        asp-items="Model.MarketingCampaignsList"
+                        class="form-select">
+                    <option value="">-- Bez marketingové kampaně --</option>
+                </select>
+
+                <span asp-validation-for="Activity.MarketingCampaignId"
                       class="text-danger"></span>
             </div>
 
@@ -116,25 +161,39 @@
                     Uložit aktivitu
                 </button>
 
-                <a asp-page="./Index"
-                   class="btn btn-outline-secondary">
-                    Zrušit
-                </a>
+                @if (Model.Activity.TaskId.HasValue)
+                {
+                    <a asp-page="/Tasks/Details"
+                       asp-route-id="@Model.Activity.TaskId"
+                       class="btn btn-outline-secondary">
+                        Zrušit
+                    </a>
+                }
+                else
+                {
+                    <a asp-page="./Index"
+                       class="btn btn-outline-secondary">
+                        Zrušit
+                    </a>
+                }
             </div>
 
         </form>
 
     </div>
 </div>
+
 <script>
     document.addEventListener("DOMContentLoaded", function () {
 
         const companySelect = document.getElementById("companySelect");
         const contactSelect = document.getElementById("contactSelect");
+        const parentSelect = document.getElementById(
+            "Activity_ParentActivityId"
+        );
 
-        companySelect.addEventListener("change", async function () {
-
-            const companyId = companySelect.value;
+        // Načtení kontaktů vybrané firmy
+        async function loadContacts(companyId, selectedContactId = null) {
 
             contactSelect.innerHTML =
                 '<option value="">-- Bez kontaktní osoby --</option>';
@@ -151,17 +210,74 @@
                 `?handler=Contacts&companyId=${companyId}`
             );
 
+            if (!response.ok) {
+                contactSelect.innerHTML =
+                    '<option value="">Chyba při načítání kontaktů</option>';
+                return;
+            }
+
             const contacts = await response.json();
 
             contacts.forEach(contact => {
                 const option = document.createElement("option");
                 option.value = contact.id;
                 option.textContent = contact.name;
+
+                if (selectedContactId != null &&
+                    contact.id == selectedContactId) {
+                    option.selected = true;
+                }
+
                 contactSelect.appendChild(option);
             });
 
             contactSelect.disabled = false;
+        }
+
+        // Ruční změna firmy
+        companySelect.addEventListener("change", async function () {
+
+            parentSelect.value = "";
+
+            await loadContacts(companySelect.value);
         });
 
+        // Výběr nadřazené aktivity
+        parentSelect.addEventListener("change", async function () {
+
+            const parentId = parentSelect.value;
+
+            if (!parentId)
+                return;
+
+            const response = await fetch(
+                `?handler=ParentActivity&id=${parentId}`
+            );
+
+            if (!response.ok)
+                return;
+
+            const parent = await response.json();
+
+            if (!parent)
+                return;
+
+            companySelect.value = parent.companyId;
+
+            await loadContacts(
+                parent.companyId,
+                parent.contactId
+            );
+        });
+
+        // Při prvním otevření formuláře obnovíme kontakty
+        if (companySelect.value) {
+            loadContacts(
+                companySelect.value,
+                @Html.Raw(Model.Activity.ContactId.HasValue
+                    ? Model.Activity.ContactId.Value.ToString()
+                    : "null")
+            );
+        }
     });
 </script>

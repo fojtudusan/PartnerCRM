@@ -1,0 +1,521 @@
+﻿
+@page "{id:int}"
+@model PartnerCRM.Pages.Activities.DetailsModel
+
+@{
+    ViewData["Title"] = "Detail aktivity";
+
+    var badgeClass = Model.Activity.Type switch
+    {
+        "Telefonát" => "bg-primary",
+        "E-mail" => "bg-info text-dark",
+        "Schůzka" => "bg-success",
+        "Online jednání" => "bg-info text-dark",
+        "Poznámka" => "bg-warning text-dark",
+        _ => "bg-light text-dark"
+    };
+}
+
+<!-- HLAVIČKA -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="mb-1">@Model.Activity.Subject</h2>
+        <p class="text-muted mb-0">Detail aktivity</p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a asp-page="./Edit"
+           asp-route-id="@Model.Activity.Id"
+           class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-pencil"></i> Upravit
+        </a>
+
+        <a asp-page="./Index"
+           class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Zpět na seznam
+        </a>
+    </div>
+</div>
+
+<!-- ZÁKLADNÍ INFORMACE -->
+<div class="row g-3 mb-3">
+
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-2">
+                <strong>
+                    <i class="bi bi-info-circle me-2"></i>
+                    Základní údaje
+                </strong>
+            </div>
+
+            <div class="card-body py-3">
+                <div class="row g-3 small">
+
+                    <div class="col-12">
+                        <span class="text-muted">Předmět:</span>
+                        <strong class="ms-1">@Model.Activity.Subject</strong>
+                    </div>
+
+                    <div class="col-md-6">
+                        <span class="text-muted">Typ aktivity:</span>
+                        <span class="badge @badgeClass ms-1">
+                            @Model.Activity.Type
+                        </span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <span class="text-muted">Datum:</span>
+                        <strong class="ms-1">
+                            @Model.Activity.ActivityDate.ToString("dd.MM.yyyy HH:mm")
+                        </strong>
+                    </div>
+
+                    <div class="col-12">
+                        <span class="text-muted">Firma:</span>
+                        <a asp-page="/Companies/Details"
+                           asp-route-id="@Model.Activity.CompanyId"
+                           class="ms-1 fw-semibold">
+                            @Model.Activity.Company.Name
+                        </a>
+                    </div>
+
+                    <div class="col-12">
+                        <span class="text-muted">Kontaktní osoba:</span>
+
+                        @if (Model.Activity.Contact != null)
+                        {
+                            <a asp-page="/Contacts/Details"
+                               asp-route-id="@Model.Activity.Contact.Id"
+                               class="ms-1">
+                                @Model.Activity.Contact.FirstName
+                                @Model.Activity.Contact.LastName
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="ms-1">—</span>
+                        }
+                    </div>
+                    <div class="col-12">
+                        <span class="text-muted">Marketingová kampaň:</span>
+
+                        @if (Model.Activity.MarketingCampaign != null)
+                        {
+                            <div class="mt-1">
+                                <strong>
+                                    @Model.Activity.MarketingCampaign.Name
+                                </strong>
+
+                                <span class="badge bg-secondary ms-2">
+                                    @Model.Activity.MarketingCampaign.Status
+                                </span>
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="ms-1">—</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-2">
+                <strong>
+                    <i class="bi bi-card-text me-2"></i>
+                    Popis a výsledek
+                </strong>
+            </div>
+
+            <div class="card-body py-3 small">
+
+                <div class="mb-3">
+                    <span class="text-muted">Popis:</span>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Activity.Description))
+                    {
+                        <div class="mt-1" style="white-space:pre-wrap">@Model.Activity.Description</div>
+                    }
+                    else
+                    {
+                        <span class="ms-1">—</span>
+                    }
+                </div>
+
+                <div>
+                    <span class="text-muted">Výsledek:</span>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Activity.Result))
+                    {
+                        <div class="mt-1" style="white-space:pre-wrap">@Model.Activity.Result</div>
+                    }
+                    else
+                    {
+                        <span class="ms-1">—</span>
+                    }
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- NADŘAZENÁ AKTIVITA -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-white py-2">
+        <strong>
+            <i class="bi bi-diagram-3 me-2"></i>
+            Nadřazená aktivita
+        </strong>
+    </div>
+
+    <div class="card-body py-3 small">
+        @if (Model.Activity.ParentActivity != null)
+        {
+            <a asp-page="./Details"
+               asp-route-id="@Model.Activity.ParentActivity.Id"
+               class="fw-semibold">
+                @Model.Activity.ParentActivity.Subject
+            </a>
+
+            <span class="text-muted ms-2">
+                (@Model.Activity.ParentActivity.ActivityDate.ToString("dd.MM.yyyy"))
+            </span>
+        }
+        else
+        {
+            <span class="text-muted">
+                Tato aktivita je samostatná.
+            </span>
+        }
+    </div>
+</div>
+
+<!-- PODAKTIVITY -->
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0">Podaktivity</h5>
+
+    @if (!Model.Activity.Company.IsMerged)
+    {
+        <a asp-page="./Create"
+           asp-route-parentActivityId="@Model.Activity.Id"
+           class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-lg"></i> Nová podaktivita
+        </a>
+    }
+</div>
+
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body p-0">
+
+        @if (Model.Activity.ChildActivities.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0 small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Datum</th>
+                            <th>Typ</th>
+                            <th>Předmět</th>
+                            <th>Kontaktní osoba</th>
+                            <th>Výsledek</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var child in Model.Activity.ChildActivities
+                            .OrderByDescending(a => a.ActivityDate))
+                        {
+                            <tr>
+                                <td>
+                                    @child.ActivityDate.ToString("dd.MM.yyyy HH:mm")
+                                </td>
+
+                                <td>
+                                    @{
+                                        var childBadge = child.Type switch
+                                        {
+                                            "Telefonát" => "bg-primary",
+                                            "E-mail" => "bg-info text-dark",
+                                            "Schůzka" => "bg-success",
+                                            "Online jednání" => "bg-info text-dark",
+                                            "Poznámka" => "bg-warning text-dark",
+                                            _ => "bg-light text-dark"
+                                        };
+                                    }
+
+                                    <span class="badge @childBadge">
+                                        @child.Type
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <a asp-page="./Details"
+                                       asp-route-id="@child.Id"
+                                       class="text-decoration-none fw-semibold">
+                                        @child.Subject
+                                    </a>
+                                </td>
+
+                                <td>
+                                    @if (child.Contact != null)
+                                    {
+                                        @child.Contact.FirstName
+                                        @:
+                                        @child.Contact.LastName
+                                    }
+                                    else
+                                    {
+                                        <span>—</span>
+                                    }
+                                </td>
+
+                                <td>@child.Result</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="p-3 text-muted small">
+                Tato aktivita zatím nemá žádné podaktivity.
+            </div>
+        }
+
+    </div>
+</div>
+
+<!-- ÚKOLY -->
+<div class="d-flex justify-content-between align-items-center mb-2 mt-4">
+    <h5 class="mb-0">
+        <i class="bi bi-list-check me-2"></i>
+        Úkoly
+    </h5>
+
+    @if (!Model.Activity.Company.IsMerged)
+    {
+        <a asp-page="/Tasks/Create"
+           asp-route-activityId="@Model.Activity.Id"
+           class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-lg"></i> Nový úkol
+        </a>
+    }
+</div>
+
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body p-0">
+
+        @if (Model.Tasks.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0 small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Úkol</th>
+                            <th>Termín</th>
+                            <th>Priorita</th>
+                            <th>Stav</th>
+                            <th class="text-end">Akce</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var task in Model.Tasks)
+                        {
+                            var priorityClass = task.Priority switch
+                            {
+                                "Vysoká" => "bg-danger",
+                                "Nízká" => "bg-secondary",
+                                _ => "bg-primary"
+                            };
+
+                            var statusClass = task.Status switch
+                            {
+                                "Splněno" => "bg-success",
+                                "Probíhá" => "bg-info text-dark",
+                                "Zrušeno" => "bg-secondary",
+                                _ => "bg-warning text-dark"
+                            };
+
+                            <tr>
+                                <td>
+                                    <strong>@task.Title</strong>
+                                </td>
+
+                                <td>
+                                    @task.DueDate.ToString("dd.MM.yyyy HH:mm")
+                                </td>
+
+                                <td>
+                                    <span class="badge @priorityClass">
+                                        @task.Priority
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="badge @statusClass">
+                                        @task.Status
+                                    </span>
+                                </td>
+
+                                <td class="text-end">
+                                    <a asp-page="/Tasks/Edit"
+                                       asp-route-id="@task.Id"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="Upravit úkol">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="p-3 text-muted small">
+                K této aktivitě zatím nejsou přiřazeny žádné úkoly.
+            </div>
+        }
+
+    </div>
+</div>
+<!-- PŘÍLOHY -->
+<div class="d-flex justify-content-between align-items-center mb-2 mt-4">
+    <h5 class="mb-0">
+        <i class="bi bi-paperclip me-2"></i>
+        Přílohy
+    </h5>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+
+        @if (!string.IsNullOrWhiteSpace(Model.AttachmentMessage))
+        {
+            <div class="alert alert-info alert-dismissible fade show small"
+                 role="alert">
+                @Model.AttachmentMessage
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+            </div>
+        }
+
+        <!-- Nahrání souboru -->
+        <form method="post"
+              asp-page-handler="Upload"
+              asp-route-id="@Model.Activity.Id"
+              enctype="multipart/form-data">
+
+            <div class="row g-2 align-items-end">
+                <div class="col-md-9">
+                    <label asp-for="UploadedFile"
+                           class="form-label small">
+                        Vyberte soubor
+                    </label>
+
+                    <input asp-for="UploadedFile"
+                           type="file"
+                           class="form-control form-control-sm"
+                           accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt" />
+                </div>
+
+                <div class="col-md-3">
+                    <button type="submit"
+                            class="btn btn-primary btn-sm w-100">
+                        <i class="bi bi-upload me-1"></i>
+                        Nahrát přílohu
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-text">
+                Povolené formáty: PDF, Word, Excel, JPG, PNG, TXT.
+                Maximální velikost 20 MB.
+            </div>
+        </form>
+
+        <hr />
+
+        <!-- Seznam příloh -->
+        @if (Model.Activity.Attachments.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0 small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Soubor</th>
+                            <th>Velikost</th>
+                            <th>Nahráno</th>
+                            <th class="text-end">Akce</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var attachment in Model.Activity.Attachments
+                            .OrderByDescending(a => a.UploadedAt))
+                        {
+                            <tr>
+                                <td>
+                                    <i class="bi bi-file-earmark me-2"></i>
+                                    <strong>
+                                        @attachment.OriginalFileName
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    @((attachment.FileSize / 1024.0).ToString("N0")) kB
+                                </td>
+
+                                <td>
+                                    @attachment.UploadedAt.ToString("dd.MM.yyyy HH:mm")
+                                </td>
+
+                                <td class="text-end">
+                                    <a asp-page-handler="Download"
+                                       asp-route-id="@Model.Activity.Id"
+                                       asp-route-attachmentId="@attachment.Id"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="Stáhnout">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+
+                                    <form method="post"
+                                          asp-page-handler="Delete"
+                                          asp-route-id="@Model.Activity.Id"
+                                          asp-route-attachmentId="@attachment.Id"
+                                          class="d-inline"
+                                          onsubmit="return confirm('Opravdu chcete odstranit tuto přílohu?');">
+
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger"
+                                                title="Odstranit">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-muted small">
+                K této aktivitě zatím nejsou připojeny žádné soubory.
+            </div>
+        }
+
+    </div>
+</div>

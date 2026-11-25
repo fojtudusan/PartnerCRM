@@ -32,6 +32,198 @@ namespace PartnerCRM.Migrations
                     b.ToTable("CompanyCompanyType");
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex");
+
+                    b.ToTable("AspNetRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex");
+
+                    b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RoleId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
+
             modelBuilder.Entity("PartnerCRM.Models.Activity", b =>
                 {
                     b.Property<int>("Id")
@@ -51,6 +243,12 @@ namespace PartnerCRM.Migrations
                         .HasMaxLength(3000)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("MarketingCampaignId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ParentActivityId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Result")
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");
@@ -59,6 +257,9 @@ namespace PartnerCRM.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
+
+                    b.Property<int?>("TaskId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -71,7 +272,49 @@ namespace PartnerCRM.Migrations
 
                     b.HasIndex("ContactId");
 
+                    b.HasIndex("MarketingCampaignId");
+
+                    b.HasIndex("ParentActivityId");
+
+                    b.HasIndex("TaskId");
+
                     b.ToTable("Activities");
+                });
+
+            modelBuilder.Entity("PartnerCRM.Models.ActivityAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ActivityId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ContentType")
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StoredFileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityId");
+
+                    b.ToTable("ActivityAttachments");
                 });
 
             modelBuilder.Entity("PartnerCRM.Models.Bank", b =>
@@ -262,10 +505,10 @@ namespace PartnerCRM.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsMerged")
+                    b.Property<bool>("IsActive")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("IsPrimary")
+                    b.Property<bool>("IsMerged")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("LastName")
@@ -279,8 +522,16 @@ namespace PartnerCRM.Migrations
                     b.Property<int?>("MergedIntoContactId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Notes")
+                        .HasMaxLength(5000)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Phone")
                         .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PhotoPath")
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Position")
@@ -317,6 +568,9 @@ namespace PartnerCRM.Migrations
                     b.Property<bool>("IsCurrent")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");
@@ -327,7 +581,9 @@ namespace PartnerCRM.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId");
+                    b.HasIndex("CompanyId")
+                        .IsUnique()
+                        .HasFilter("\"IsPrimary\" = 1 AND \"IsCurrent\" = 1");
 
                     b.HasIndex("ContactId");
 
@@ -369,6 +625,9 @@ namespace PartnerCRM.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("ActivityId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("CompanyId")
                         .HasColumnType("INTEGER");
 
@@ -384,6 +643,9 @@ namespace PartnerCRM.Migrations
 
                     b.Property<DateTime>("DueDate")
                         .HasColumnType("TEXT");
+
+                    b.Property<int?>("ParentTaskId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Priority")
                         .IsRequired()
@@ -402,9 +664,13 @@ namespace PartnerCRM.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ActivityId");
+
                     b.HasIndex("CompanyId");
 
                     b.HasIndex("ContactId");
+
+                    b.HasIndex("ParentTaskId");
 
                     b.ToTable("Tasks");
                 });
@@ -585,6 +851,45 @@ namespace PartnerCRM.Migrations
                     b.ToTable("ProductionAreas");
                 });
 
+            modelBuilder.Entity("PartnerCRM.Models.UserInvitation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("AcceptedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserInvitations");
+                });
+
             modelBuilder.Entity("CompanyCompanyType", b =>
                 {
                     b.HasOne("PartnerCRM.Models.Company", null)
@@ -596,6 +901,57 @@ namespace PartnerCRM.Migrations
                     b.HasOne("PartnerCRM.Models.CompanyType", null)
                         .WithMany()
                         .HasForeignKey("CompanyTypesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -612,9 +968,41 @@ namespace PartnerCRM.Migrations
                         .WithMany()
                         .HasForeignKey("ContactId");
 
+                    b.HasOne("PartnerCRM.Models.MarketingCampaign", "MarketingCampaign")
+                        .WithMany("Activities")
+                        .HasForeignKey("MarketingCampaignId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("PartnerCRM.Models.Activity", "ParentActivity")
+                        .WithMany("ChildActivities")
+                        .HasForeignKey("ParentActivityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PartnerCRM.Models.CrmTask", "Task")
+                        .WithMany("Activities")
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Company");
 
                     b.Navigation("Contact");
+
+                    b.Navigation("MarketingCampaign");
+
+                    b.Navigation("ParentActivity");
+
+                    b.Navigation("Task");
+                });
+
+            modelBuilder.Entity("PartnerCRM.Models.ActivityAttachment", b =>
+                {
+                    b.HasOne("PartnerCRM.Models.Activity", "Activity")
+                        .WithMany("Attachments")
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
                 });
 
             modelBuilder.Entity("PartnerCRM.Models.City", b =>
@@ -702,6 +1090,11 @@ namespace PartnerCRM.Migrations
 
             modelBuilder.Entity("PartnerCRM.Models.CrmTask", b =>
                 {
+                    b.HasOne("PartnerCRM.Models.Activity", "Activity")
+                        .WithMany()
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("PartnerCRM.Models.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId");
@@ -710,9 +1103,18 @@ namespace PartnerCRM.Migrations
                         .WithMany()
                         .HasForeignKey("ContactId");
 
+                    b.HasOne("PartnerCRM.Models.CrmTask", "ParentTask")
+                        .WithMany("ChildTasks")
+                        .HasForeignKey("ParentTaskId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Activity");
+
                     b.Navigation("Company");
 
                     b.Navigation("Contact");
+
+                    b.Navigation("ParentTask");
                 });
 
             modelBuilder.Entity("PartnerCRM.Models.MarketingCampaign", b =>
@@ -762,6 +1164,13 @@ namespace PartnerCRM.Migrations
                     b.Navigation("ParentProductionArea");
                 });
 
+            modelBuilder.Entity("PartnerCRM.Models.Activity", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("ChildActivities");
+                });
+
             modelBuilder.Entity("PartnerCRM.Models.Company", b =>
                 {
                     b.Navigation("Branches");
@@ -785,8 +1194,17 @@ namespace PartnerCRM.Migrations
                     b.Navigation("Cities");
                 });
 
+            modelBuilder.Entity("PartnerCRM.Models.CrmTask", b =>
+                {
+                    b.Navigation("Activities");
+
+                    b.Navigation("ChildTasks");
+                });
+
             modelBuilder.Entity("PartnerCRM.Models.MarketingCampaign", b =>
                 {
+                    b.Navigation("Activities");
+
                     b.Navigation("Recipients");
                 });
 

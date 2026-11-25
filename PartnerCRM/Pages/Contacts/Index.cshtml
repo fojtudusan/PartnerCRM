@@ -15,13 +15,13 @@
     </div>
 
     <div class="d-flex gap-2">
-        <a asp-page="./Merge" class="btn btn-warning">
-            <i class="bi bi-arrow-left-right"></i>
-            Sloučit kontakty
-        </a>
-
-        @if (!Model.ShowArchived)
+        @if (!Model.ShowArchived && !Model.ShowInactive)
         {
+            <a asp-page="./Merge" class="btn btn-warning">
+                <i class="bi bi-arrow-left-right"></i>
+                Sloučit kontakty
+            </a>
+
             <a asp-page="./Create" class="btn btn-primary">
                 <i class="bi bi-plus-lg"></i>
                 Nový kontakt
@@ -30,32 +30,26 @@
     </div>
 </div>
 
-<div class="mb-3">
-    @if (Model.ShowArchived)
-    {
-        <a asp-page="./Index"
-           class="btn btn-outline-primary">
-            <i class="bi bi-person-check"></i>
-            Aktivní kontakty
-        </a>
+<div class="mb-3 d-flex gap-2 flex-wrap">
+    <a asp-page="./Index"
+       class="btn @( !Model.ShowArchived && !Model.ShowInactive ? "btn-primary" : "btn-outline-primary")">
+        <i class="bi bi-person-check"></i>
+        Aktivní kontakty
+    </a>
 
-        <span class="badge bg-secondary ms-2">
-            Archivované kontakty
-        </span>
-    }
-    else
-    {
-        <a asp-page="./Index"
-           asp-route-showArchived="true"
-           class="btn btn-outline-secondary">
-            <i class="bi bi-archive"></i>
-            Archiv kontaktů
-        </a>
+    <a asp-page="./Index"
+       asp-route-showInactive="true"
+       class="btn @(Model.ShowInactive ? "btn-warning" : "btn-outline-warning")">
+        <i class="bi bi-person-x"></i>
+        Neaktivní kontakty
+    </a>
 
-        <span class="badge bg-success ms-2">
-            Aktivní kontakty
-        </span>
-    }
+    <a asp-page="./Index"
+       asp-route-showArchived="true"
+       class="btn @(Model.ShowArchived ? "btn-secondary" : "btn-outline-secondary")">
+        <i class="bi bi-archive"></i>
+        Archiv sloučených kontaktů
+    </a>
 </div>
 
 @if (TempData["SuccessMessage"] != null)
@@ -71,6 +65,22 @@
 
 <div class="card border-0 shadow-sm">
     <div class="card-body">
+
+        @if (Model.ShowArchived)
+        {
+            <h5 class="mb-3">Archiv sloučených kontaktů</h5>
+        }
+        else if (Model.ShowInactive)
+        {
+            <h5 class="mb-3">Neaktivní kontakty</h5>
+            <p class="text-muted">
+                Tyto kontakty nejsou aktivně používány. Můžete je znovu aktivovat.
+            </p>
+        }
+        else
+        {
+            <h5 class="mb-3">Aktivní kontakty</h5>
+        }
 
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -104,39 +114,37 @@
                                 </td>
 
                                 <td>
-    @{
-        var currentCompanies = contact.Employments
-            .Where(e => e.IsCurrent && e.Company != null)
-            .Select(e => e.Company.Name)
-            .Distinct()
-            .OrderBy(name => name)
-            .ToList();
-    }
+                                    @{
+                                        var currentCompanies = contact.Employments
+                                            .Where(e => e.IsCurrent && e.Company != null)
+                                            .Select(e => e.Company.Name)
+                                            .Distinct()
+                                            .OrderBy(name => name)
+                                            .ToList();
+                                    }
 
-    @if (currentCompanies.Any())
-    {
-        @string.Join(", ", currentCompanies)
-    }
-    else if (contact.Company != null)
-    {
-        <span class="text-muted">
-            @contact.Company.Name
-        </span>
-    }
-    else
-    {
-        <span class="text-muted">Neuvedeno</span>
-    }
-</td>
+                                    @if (currentCompanies.Any())
+                                    {
+                                        @string.Join(", ", currentCompanies)
+                                    }
+                                    else if (contact.Company != null)
+                                    {
+                                        <span class="text-muted">
+                                            @contact.Company.Name
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Neuvedeno</span>
+                                    }
+                                </td>
 
                                 <td>@contact.Position</td>
-
                                 <td>@contact.Email</td>
-
                                 <td>@contact.Phone</td>
 
                                 <td>
-                                    @if (contact.IsPrimary)
+                                    @if (contact.Employments.Any(e => e.IsCurrent && e.IsPrimary))
                                     {
                                         <span class="badge bg-success">Ano</span>
                                     }
@@ -168,7 +176,32 @@
                                 }
 
                                 <td class="text-end">
-                                    @if (!Model.ShowArchived)
+                                    @if (Model.ShowArchived)
+                                    {
+                                        <span class="text-muted">Archivováno</span>
+                                    }
+                                    else if (Model.ShowInactive)
+                                    {
+                                        <a asp-page="./Details"
+                                           asp-route-id="@contact.Id"
+                                           class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-eye"></i>
+                                            Detail
+                                        </a>
+
+                                        <form method="post"
+                                              asp-page-handler="Activate"
+                                              asp-route-id="@contact.Id"
+                                              class="d-inline">
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-success"
+                                                    onclick="return confirm('Opravdu chcete tento kontakt znovu aktivovat?');">
+                                                <i class="bi bi-person-check"></i>
+                                                Aktivovat
+                                            </button>
+                                        </form>
+                                    }
+                                    else
                                     {
                                         <a asp-page="./Edit"
                                            asp-route-id="@contact.Id"
@@ -177,18 +210,19 @@
                                             Upravit
                                         </a>
 
+                                        <a asp-page="./Details"
+                                           asp-route-id="@contact.Id"
+                                           class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-eye"></i>
+                                            Detail
+                                        </a>
+
                                         <a asp-page="./Delete"
                                            asp-route-id="@contact.Id"
                                            class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-trash"></i>
-                                            Smazat
+                                            <i class="bi bi-person-x"></i>
+                                            Zneplatnit
                                         </a>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">
-                                            Archivováno
-                                        </span>
                                     }
                                 </td>
                             </tr>
@@ -203,9 +237,13 @@
                                 {
                                     <span>Archiv zatím neobsahuje žádné kontakty.</span>
                                 }
+                                else if (Model.ShowInactive)
+                                {
+                                    <span>Nejsou evidovány žádné neaktivní kontakty.</span>
+                                }
                                 else
                                 {
-                                    <span>Zatím nejsou evidovány žádné kontakty.</span>
+                                    <span>Zatím nejsou evidovány žádné aktivní kontakty.</span>
                                 }
                             </td>
                         </tr>
